@@ -4152,7 +4152,7 @@ static void append_internal_url(StateMachine * sm, const DText::URL& url) {
         // http://danbooru.donmai.us/wiki_pages/10933#dtext-self-upload
         return append_id_link(sm, "wiki", "wiki-page", "/wiki/show/", id);
       }
-    } else if (controller == "wiki_pages" && fragment.empty()) {
+    } else if (controller == "wiki" && fragment.empty()) {
       return append_wiki_link(sm, {}, id, {}, id, {});
     }
   } else if (path_components.size() >= 3) {
@@ -4254,7 +4254,7 @@ static void append_wiki_link(StateMachine * sm, const std::string_view prefix, c
   }
 
   append(sm, "<a class=\"dtext-link dtext-wiki-link\" href=\"");
-  append_relative_url(sm, "/wiki_pages/");
+  append_relative_url(sm, "/wiki/show?title=");
   append_uri_escaped(sm, normalized_tag);
 
   if (!anchor.empty()) {
@@ -5222,19 +5222,19 @@ _eof_trans:
 	break;
 	case 74:
 #line 298 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "user-report", "user-report", "/user_flag/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "user report", "user-report", "/user_flag/show/", { sm->a1, sm->a2 }); }}
 	break;
 	case 75:
 #line 299 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "alias", "tag-alias", "https://beta.sankakucomplex.com/tag_aliases?id[0]=", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "tag alias", "tag-alias", "https://beta.sankakucomplex.com/tag_aliases?id[0]=", { sm->a1, sm->a2 }); }}
 	break;
 	case 76:
 #line 300 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "implication", "tag-implication", "https://beta.sankakucomplex.com/tag_implications?id[0]=", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "tag implication", "tag-implication", "https://beta.sankakucomplex.com/tag_implications?id[0]=", { sm->a1, sm->a2 }); }}
 	break;
 	case 77:
 #line 301 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "translation", "tag-translation", "https://beta.sankakucomplex.com/tag_translations?id[0]=", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "tag translation", "tag-translation", "https://beta.sankakucomplex.com/tag_translations?id[0]=", { sm->a1, sm->a2 }); }}
 	break;
 	case 78:
 #line 302 "ext/dtext/dtext.cpp.rl"
