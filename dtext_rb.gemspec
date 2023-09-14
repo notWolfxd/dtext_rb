@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["noizave@gmail.com"]
 
   spec.summary = "Danbooru DText Parser"
-  spec.homepage = "https://github.com/danbooru/dtext_rb"
+  spec.homepage = "https://github.com/notWolfxd/dtext_rb"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
   spec.extensions = ["ext/dtext/extconf.rb"]
