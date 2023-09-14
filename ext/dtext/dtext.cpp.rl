@@ -248,6 +248,7 @@ open_td = '[td'i tag_attributes :>> ']' | '<td'i tag_attributes :>> '>';
 open_br = '[br]'i | '<br>'i;
 
 open_tn = '[tn]'i | '<tn>'i;
+open_center = '[center]'i | '<center>'i
 open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
@@ -266,6 +267,7 @@ close_tr = '[/tr]'i | '</tr>'i;
 close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
 close_tn = '[/tn]'i | '</tn>'i;
+close_center = '[/center]'i | '</center>'i
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
@@ -374,6 +376,20 @@ inline := |*
     if (dstack_check(sm, INLINE_TN)) {
       dstack_close_element(sm, INLINE_TN);
     } else if (dstack_close_element(sm, BLOCK_TN)) {
+      fret;
+    }
+  };
+
+  open_center => {
+    dstack_open_element(sm, INLINE_CENTER, "<p class=\"center\">");
+  };
+
+  newline* close_center => {
+    g_debug("inline [/center]");
+
+    if (dstack_check(sm, INLINE_CENTER)) {
+      dstack_close_element(sm, INLINE_CENTER);
+    } else if (dstack_close_element(sm, BLOCK_CENTER)) {
       fret;
     }
   };
@@ -683,6 +699,11 @@ main := |*
 
   open_tn => {
     dstack_open_element(sm, BLOCK_TN, "<p class=\"tn\">");
+    fcall inline;
+  };
+
+  open_center => {
+    dstack_open_element(sm, BLOCK_CENTER, "<p class=\"center\">");
     fcall inline;
   };
 
@@ -1228,9 +1249,11 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_U: append(sm, "</u>"); break;
     case INLINE_S: append(sm, "</s>"); break;
     case INLINE_TN: append(sm, "</span>"); break;
+    case INLINE_CENTER: append(sm, "</p>"); break;
     case INLINE_CODE: append(sm, "</code>"); break;
 
     case BLOCK_TN: append_closing_p(sm); break;
+    case BLOCK_CENTER: append_closing_p(sm); break;
     case BLOCK_TABLE: append_block(sm, "</table>"); break;
     case BLOCK_COLGROUP: append_block(sm, "</colgroup>"); break;
     case BLOCK_THEAD: append_block(sm, "</thead>"); break;
