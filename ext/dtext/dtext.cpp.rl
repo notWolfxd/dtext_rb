@@ -248,7 +248,7 @@ open_td = '[td'i tag_attributes :>> ']' | '<td'i tag_attributes :>> '>';
 open_br = '[br]'i | '<br>'i;
 
 open_tn = '[tn]'i | '<tn>'i;
-open_center = '[center]'i | '<center>'i
+open_center = '[center]'i | '<center>'i;
 open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
@@ -267,7 +267,7 @@ close_tr = '[/tr]'i | '</tr>'i;
 close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
 close_tn = '[/tn]'i | '</tn>'i;
-close_center = '[/center]'i | '</center>'i
+close_center = '[/center]'i | '</center>'i;
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
