@@ -573,9 +573,11 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_U: append(sm, "</u>"); break;
     case INLINE_S: append(sm, "</s>"); break;
     case INLINE_TN: append(sm, "</span>"); break;
+    case INLINE_CENTER: append(sm, "</span>"); break;
     case INLINE_CODE: append(sm, "</code>"); break;
 
     case BLOCK_TN: append_closing_p(sm); break;
+    case BLOCK_CENTER: append_closing_p(sm); break;
     case BLOCK_TABLE: append_block(sm, "</table>"); break;
     case BLOCK_COLGROUP: append_block(sm, "</colgroup>"); break;
     case BLOCK_THEAD: append_block(sm, "</thead>"); break;
@@ -596,7 +598,7 @@ static void dstack_rewind(StateMachine * sm) {
   } 
 }
 
-// container blocks: [spoiler], [quote], [expand], [tn]
+// container blocks: [spoiler], [quote], [expand], [tn], [center]
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 static void dstack_close_leaf_blocks(StateMachine * sm) {
   g_debug("dstack close leaf blocks");
@@ -2345,6 +2347,25 @@ tr86:
 #line 706 "ext/dtext/dtext.cpp.rl"
 	{( sm->te) = ( sm->p)+1;{
     dstack_open_element(sm, BLOCK_TN, "<p class=\"tn\">");
+    {
+  size_t len = sm->stack.size();
+
+  if (len > MAX_STACK_DEPTH) {
+    // Should never happen.
+    throw DTextError("too many nested elements");
+  }
+
+  if (sm->top >= len) {
+    g_debug("growing sm->stack %zi", len + 16);
+    sm->stack.resize(len + 16, 0);
+  }
+{( (sm->stack.data()))[( sm->top)++] = 1105;goto st1127;}}
+  }}
+	goto st1105;
+tr1432:
+#line ...
+	{( sm->te) = ( sm->p)+1;{
+    dstack_open_element(sm, BLOCK_CENTER, "<p class=\"center\">");
     {
   size_t len = sm->stack.size();
 
@@ -4657,6 +4678,18 @@ tr229:
     }
   }}
 	goto st1127;
+tr3456:
+#line ...
+	{( sm->te) = ( sm->p)+1;{
+    g_debug("inline [/center]");
+
+    if (dstack_check(sm, INLINE_CENTER)) {
+      dstack_close_element(sm, INLINE_CENTER);
+    } else if (dstack_close_element(sm, BLOCK_CENTER)) {
+      { sm->cs = ( (sm->stack.data()))[--( sm->top)];goto _again;}
+    }
+  }}
+	goto st1127;
 tr272:
 #line 437 "ext/dtext/dtext.cpp.rl"
 	{( sm->te) = ( sm->p)+1;{
@@ -4940,6 +4973,11 @@ tr818:
 #line 389 "ext/dtext/dtext.cpp.rl"
 	{( sm->te) = ( sm->p)+1;{
     dstack_open_element(sm, INLINE_TN, "<span class=\"tn\">");
+  }}
+	goto st1127;
+tr2345:
+	{( sm->te) = ( sm->p)+1;{
+    dstack_open_element(sm, INLINE_CENTER, "<span class=\"center\">");
   }}
 	goto st1127;
 tr820:
