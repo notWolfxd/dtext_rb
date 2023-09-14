@@ -381,7 +381,7 @@ inline := |*
   };
 
   open_center => {
-    dstack_open_element(sm, INLINE_CENTER, "<p class=\"center\">");
+    dstack_open_element(sm, INLINE_CENTER, "<span class=\"center\">");
   };
 
   newline* close_center => {
@@ -1249,7 +1249,7 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_U: append(sm, "</u>"); break;
     case INLINE_S: append(sm, "</s>"); break;
     case INLINE_TN: append(sm, "</span>"); break;
-    case INLINE_CENTER: append(sm, "</p>"); break;
+    case INLINE_CENTER: append(sm, "</span>"); break;
     case INLINE_CODE: append(sm, "</code>"); break;
 
     case BLOCK_TN: append_closing_p(sm); break;
@@ -1274,12 +1274,12 @@ static void dstack_rewind(StateMachine * sm) {
   } 
 }
 
-// container blocks: [spoiler], [quote], [expand], [tn]
+// container blocks: [spoiler], [quote], [expand], [tn], [center]
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 static void dstack_close_leaf_blocks(StateMachine * sm) {
   g_debug("dstack close leaf blocks");
 
-  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_EXPAND) && !dstack_check(sm, BLOCK_TN)) {
+  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_EXPAND) && !dstack_check(sm, BLOCK_TN) && !dstack_check(sm, BLOCK_CENTER)) {
     dstack_rewind(sm);
   }
 }
