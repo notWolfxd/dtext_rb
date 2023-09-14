@@ -285,41 +285,19 @@ basic_inline := |*
 *|;
 
 inline := |*
-  'post #'i id             => { append_id_link(sm, "post", "post", "/posts/", { sm->a1, sm->a2 }); };
-  'appeal #'i id           => { append_id_link(sm, "appeal", "post-appeal", "/post_appeals/", { sm->a1, sm->a2 }); };
-  'flag #'i id             => { append_id_link(sm, "flag", "post-flag", "/post_flags/", { sm->a1, sm->a2 }); };
-  'note #'i id             => { append_id_link(sm, "note", "note", "/notes/", { sm->a1, sm->a2 }); };
-  'forum #'i id            => { append_id_link(sm, "forum", "forum-post", "/forum_posts/", { sm->a1, sm->a2 }); };
-  'topic #'i id            => { append_id_link(sm, "topic", "forum-topic", "/forum_topics/", { sm->a1, sm->a2 }); };
-  'comment #'i id          => { append_id_link(sm, "comment", "comment", "/comments/", { sm->a1, sm->a2 }); };
-  'dmail #'i id            => { append_id_link(sm, "dmail", "dmail", "/dmails/", { sm->a1, sm->a2 }); };
-  'pool #'i id             => { append_id_link(sm, "pool", "pool", "/pools/", { sm->a1, sm->a2 }); };
-  'user #'i id             => { append_id_link(sm, "user", "user", "/users/", { sm->a1, sm->a2 }); };
-  'artist #'i id           => { append_id_link(sm, "artist", "artist", "/artists/", { sm->a1, sm->a2 }); };
-  'ban #'i id              => { append_id_link(sm, "ban", "ban", "/bans/", { sm->a1, sm->a2 }); };
-  'bur #'i id              => { append_id_link(sm, "BUR", "bulk-update-request", "/bulk_update_requests/", { sm->a1, sm->a2 }); };
+  'post #'i id             => { append_id_link(sm, "post", "post", "/post/show/", { sm->a1, sm->a2 }); };
+  'forum #'i id            => { append_id_link(sm, "forum", "forum-post", "/forum/show/", { sm->a1, sm->a2 }); };
+  'topic #'i id            => { append_id_link(sm, "topic", "forum-topic", "/forum/show/", { sm->a1, sm->a2 }); };
+  'comment #'i id          => { append_id_link(sm, "comment", "comment", "/comment/show/", { sm->a1, sm->a2 }); };
+  'dmail #'i id            => { append_id_link(sm, "dmail", "dmail", "/dmail/show/", { sm->a1, sm->a2 }); };
+  'pool #'i id             => { append_id_link(sm, "pool", "pool", "/pool/show/", { sm->a1, sm->a2 }); };
+  'user #'i id             => { append_id_link(sm, "user", "user", "/user/show/", { sm->a1, sm->a2 }); };
+  'artist #'i id           => { append_id_link(sm, "artist", "artist", "/artist/show/", { sm->a1, sm->a2 }); };
   'alias #'i id            => { append_id_link(sm, "alias", "tag-alias", "/tag_aliases/", { sm->a1, sm->a2 }); };
   'implication #'i id      => { append_id_link(sm, "implication", "tag-implication", "/tag_implications/", { sm->a1, sm->a2 }); };
-  'favgroup #'i id         => { append_id_link(sm, "favgroup", "favorite-group", "/favorite_groups/", { sm->a1, sm->a2 }); };
-  'mod action #'i id       => { append_id_link(sm, "mod action", "mod-action", "/mod_actions/", { sm->a1, sm->a2 }); };
-  'modreport #'i id        => { append_id_link(sm, "modreport", "moderation-report", "/moderation_reports/", { sm->a1, sm->a2 }); };
-  'feedback #'i id         => { append_id_link(sm, "feedback", "user-feedback", "/user_feedbacks/", { sm->a1, sm->a2 }); };
+  'mod action #'i id       => { append_id_link(sm, "mod action", "mod-action", "/mod_action?id=", { sm->a1, sm->a2 }); };
+  'record #'i id         => { append_id_link(sm, "record", "user-record", "/user_record?id=", { sm->a1, sm->a2 }); };
   'wiki #'i id             => { append_id_link(sm, "wiki", "wiki-page", "/wiki_pages/", { sm->a1, sm->a2 }); };
-
-  'issue #'i id            => { append_id_link(sm, "issue", "github", "https://github.com/danbooru/danbooru/issues/", { sm->a1, sm->a2 }); };
-  'pull #'i id             => { append_id_link(sm, "pull", "github-pull", "https://github.com/danbooru/danbooru/pull/", { sm->a1, sm->a2 }); };
-  'commit #'i id           => { append_id_link(sm, "commit", "github-commit", "https://github.com/danbooru/danbooru/commit/", { sm->a1, sm->a2 }); };
-  'artstation #'i alnum_id => { append_id_link(sm, "artstation", "artstation", "https://www.artstation.com/artwork/", { sm->a1, sm->a2 }); };
-  'deviantart #'i id       => { append_id_link(sm, "deviantart", "deviantart", "https://www.deviantart.com/deviation/", { sm->a1, sm->a2 }); };
-  'nijie #'i id            => { append_id_link(sm, "nijie", "nijie", "https://nijie.info/view.php?id=", { sm->a1, sm->a2 }); };
-  'pawoo #'i id            => { append_id_link(sm, "pawoo", "pawoo", "https://pawoo.net/web/statuses/", { sm->a1, sm->a2 }); };
-  'pixiv #'i id            => { append_id_link(sm, "pixiv", "pixiv", "https://www.pixiv.net/artworks/", { sm->a1, sm->a2 }); };
-  'seiga #'i id            => { append_id_link(sm, "seiga", "seiga", "https://seiga.nicovideo.jp/seiga/im", { sm->a1, sm->a2 }); };
-  'twitter #'i id          => { append_id_link(sm, "twitter", "twitter", "https://twitter.com/i/web/status/", { sm->a1, sm->a2 }); };
-
-  'yandere #'i id => { append_id_link(sm, "yandere", "yandere", "https://yande.re/post/show/", { sm->a1, sm->a2 }); };
-  'sankaku #'i id => { append_id_link(sm, "sankaku", "sankaku", "https://chan.sankakucomplex.com/post/show/", { sm->a1, sm->a2 }); };
-  'gelbooru #'i id => { append_id_link(sm, "gelbooru", "gelbooru", "https://gelbooru.com/index.php?page=post&s=view&id=", { sm->a1, sm->a2 }); };
 
   'dmail #'i id '/' dmail_key => { append_dmail_key_link(sm); };
 
