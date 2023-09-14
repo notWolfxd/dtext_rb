@@ -2362,7 +2362,7 @@ tr86:
 {( (sm->stack.data()))[( sm->top)++] = 1105;goto st1127;}}
   }}
 	goto st1105;
-tr1432:
+tr2001:
 #line ...
 	{( sm->te) = ( sm->p)+1;{
     dstack_open_element(sm, BLOCK_CENTER, "<p class=\"center\">");
@@ -4678,7 +4678,7 @@ tr229:
     }
   }}
 	goto st1127;
-tr3456:
+tr2001:
 #line ...
 	{( sm->te) = ( sm->p)+1;{
     g_debug("inline [/center]");
@@ -4975,7 +4975,7 @@ tr818:
     dstack_open_element(sm, INLINE_TN, "<span class=\"tn\">");
   }}
 	goto st1127;
-tr2345:
+tr2002:
 	{( sm->te) = ( sm->p)+1;{
     dstack_open_element(sm, INLINE_CENTER, "<span class=\"center\">");
   }}
