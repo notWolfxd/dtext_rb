@@ -4678,7 +4678,7 @@ tr229:
     }
   }}
 	goto st1127;
-tr2001:
+tr2002:
 #line ...
 	{( sm->te) = ( sm->p)+1;{
     g_debug("inline [/center]");
@@ -4975,7 +4975,7 @@ tr818:
     dstack_open_element(sm, INLINE_TN, "<span class=\"tn\">");
   }}
 	goto st1127;
-tr2002:
+tr2003:
 	{( sm->te) = ( sm->p)+1;{
     dstack_open_element(sm, INLINE_CENTER, "<span class=\"center\">");
   }}
