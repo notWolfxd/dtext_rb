@@ -83,7 +83,6 @@ action after_mention_boundary { is_mention_boundary(p[-1]) }
 action mentions_enabled { sm->options.f_mentions }
 action in_quote { dstack_is_open(sm, BLOCK_QUOTE) }
 action in_expand { dstack_is_open(sm, BLOCK_EXPAND) }
-action in_color { dstack_is_open(sm, BLOCK_COLOR) }
 action save_tag_attribute { save_tag_attribute(sm, { sm->a1, sm->a2 }, { sm->b1, sm->b2 }); }
 
 # Matches the beginning or the end of the string. The input string has null bytes prepended and appended to mark the ends of the string.
@@ -218,8 +217,6 @@ header = 'h'i [123456] >mark_a1 %mark_a2 '.' >mark_b1 >mark_b2 ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' header_id >mark_b1 %mark_b2 '.' ws*;
 aliased_expand = ('[expand'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
                | ('<expand'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
-aliased_color = ('[color'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
-               | ('<color'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
 
@@ -238,7 +235,6 @@ open_spoilers = ('[spoiler'i 's'i? ']') | ('<spoiler'i 's'i? '>');
 open_nodtext = '[nodtext]'i | '<nodtext>'i;
 open_quote = '[quote]'i | '<quote>'i | '<blockquote>'i;
 open_expand = '[expand]'i | '<expand>'i;
-open_color = '[color]'i | '<color>'i;
 open_code = '[code]'i | '<code>'i;
 open_code_lang = '[code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) ']' | '<code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) '>';
 open_table = '[table]'i | '<table>'i;
@@ -262,7 +258,6 @@ close_spoilers = ('[/spoiler'i 's'i? ']') | ('</spoiler'i 's'i? '>');
 close_nodtext = '[/nodtext]'i | '</nodtext>'i;
 close_quote = '[/quote'i (']' when in_quote) | '</quote'i ('>' when in_quote) | '</blockquote'i (']' when in_quote);
 close_expand = '[/expand'i (']' when in_expand) | '</expand'i ('>' when in_expand);
-close_color = '[/color'i (']' when in_color) | '</color'i ('>' when in_color);
 close_code = '[/code]'i | '</code>'i;
 close_table = '[/table]'i | '</table>'i;
 close_colgroup = '[/colgroup]'i | '</colgroup>'i;
@@ -494,19 +489,6 @@ inline := |*
     fret;
   };
 
-  (open_color | aliased_color) => {
-    g_debug("inline [color]");
-    dstack_close_leaf_blocks(sm);
-    fexec sm->ts;
-    fret;
-  };
-
-  newline? close_color ws* => {
-    g_debug("inline [/color]");
-    dstack_close_until(sm, BLOCK_COLOR);
-    fret;
-  };
-
   newline ws* open_table => {
     dstack_close_leaf_blocks(sm);
     fexec sm->ts;
@@ -707,19 +689,6 @@ main := |*
     append_block(sm, "</summary><div>");
   };
 
-  open_color space* => {
-    dstack_close_leaf_blocks(sm);
-    dstack_open_element(sm, BLOCK_COLOR, "<span style=\"color:#FF761C;\">");
-  };
-
-  aliased_color space* => {
-    g_debug("block [color=]");
-    dstack_close_leaf_blocks(sm);
-    dstack_open_element(sm, BLOCK_COLOR, "<span style=\"color:");
-    append_block_html_escaped(sm, { sm->a1, sm->a2 });
-    append_block(sm, "\">");
-  };
-
   open_nodtext blank_line? => {
     dstack_close_leaf_blocks(sm);
     dstack_open_element(sm, BLOCK_NODTEXT, "<p>");
@@ -728,7 +697,7 @@ main := |*
 
   ws* open_table => {
     dstack_close_leaf_blocks(sm);
-    dstack_open_element(sm, BLOCK_TABLE, "<table class=\"highlightable\">");
+    dstack_open_element(sm, BLOCK_TABLE, "<table class=\"striped\">");
     fcall table;
   };
 
@@ -762,7 +731,7 @@ main := |*
     g_debug("block char");
     fhold;
 
-    if (sm->dstack.empty() || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_EXPAND) || dstack_check(sm, BLOCK_COLOR)) {
+    if (sm->dstack.empty() || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_EXPAND)) {
       dstack_open_element(sm, BLOCK_P, "<p>");
     }
 
@@ -1105,7 +1074,7 @@ static void append_paged_link(StateMachine * sm, const char * title, const char 
 
 static void append_dmail_key_link(StateMachine * sm) {
   append(sm, "<a class=\"dtext-link dtext-id-link dtext-dmail-id-link\" href=\"");
-  append_relative_url(sm, "/dmail/show/");
+  append_relative_url(sm, "/dmails/");
   append(sm, sm->a1, sm->a2);
   append(sm, "?key=");
   append_uri_escaped(sm, { sm->b1, sm->b2 });
@@ -1268,7 +1237,6 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_SPOILER: append_block(sm, "</div>"); break;
     case BLOCK_QUOTE: append_block(sm, "</blockquote>"); break;
     case BLOCK_EXPAND: append_block(sm, "</div></details>"); break;
-    case BLOCK_COLOR: append_block(sm, "</span>"); break;
     case BLOCK_NODTEXT: append_block(sm, "</p>"); break;
     case BLOCK_CODE: append_block(sm, "</pre>"); break;
     case BLOCK_TD: append_block(sm, "</td>"); break;
@@ -1305,12 +1273,12 @@ static void dstack_rewind(StateMachine * sm) {
   } 
 }
 
-// container blocks: [spoiler], [quote], [expand], [tn], [center], [color]
+// container blocks: [spoiler], [quote], [expand], [tn], [center]
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 static void dstack_close_leaf_blocks(StateMachine * sm) {
   g_debug("dstack close leaf blocks");
 
-  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_EXPAND) && !dstack_check(sm, BLOCK_TN) && !dstack_check(sm, BLOCK_CENTER) && !dstack_check(sm, BLOCK_COLOR)) {
+  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_EXPAND) && !dstack_check(sm, BLOCK_TN) && !dstack_check(sm, BLOCK_CENTER)) {
     dstack_rewind(sm);
   }
 }
