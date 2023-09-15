@@ -715,7 +715,7 @@ main := |*
   aliased_color space* => {
     g_debug("block [color=]");
     dstack_close_leaf_blocks(sm);
-    dstack_open_element(sm, BLOCK_COLOR, "<span style=\"color:>");
+    dstack_open_element(sm, BLOCK_COLOR, "<span style=\"color:");
     append_block_html_escaped(sm, { sm->a1, sm->a2 });
     append_block(sm, "\">");
   };
