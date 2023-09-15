@@ -295,11 +295,15 @@ inline := |*
   'pool #'i id             => { append_id_link(sm, "pool", "pool", "/pool/show/", { sm->a1, sm->a2 }); };
   'user #'i id             => { append_id_link(sm, "user", "user", "/user/show/", { sm->a1, sm->a2 }); };
   'artist #'i id           => { append_id_link(sm, "artist", "artist", "/artist/show/", { sm->a1, sm->a2 }); };
-  'alias #'i id            => { append_id_link(sm, "alias", "tag-alias", "/tag_aliases/", { sm->a1, sm->a2 }); };
-  'implication #'i id      => { append_id_link(sm, "implication", "tag-implication", "/tag_implications/", { sm->a1, sm->a2 }); };
+  'user report #'i id           => { append_id_link(sm, "user report", "user-report", "/user_flag/show/", { sm->a1, sm->a2 }); };
+  'tag alias #'i id            => { append_id_link(sm, "tag alias", "tag-alias", "https://beta.sankakucomplex.com/tag_aliases?id[0]=", { sm->a1, sm->a2 }); };
+  'tag implication #'i id      => { append_id_link(sm, "tag implication", "tag-implication", "https://beta.sankakucomplex.com/tag_implications?id[0]=", { sm->a1, sm->a2 }); };
+  'tag translation #'i id      => { append_id_link(sm, "tag translation", "tag-translation", "https://beta.sankakucomplex.com/tag_translations?id[0]=", { sm->a1, sm->a2 }); };
+  'book #'i id      => { append_id_link(sm, "book", "book", "https://beta.sankakucomplex.com/books/", { sm->a1, sm->a2 }); };
+  'series #'i id      => { append_id_link(sm, "series", "series", "https://beta.sankakucomplex.com/series/", { sm->a1, sm->a2 }); };
   'mod action #'i id       => { append_id_link(sm, "mod action", "mod-action", "/mod_action?id=", { sm->a1, sm->a2 }); };
   'record #'i id         => { append_id_link(sm, "record", "user-record", "/user_record?id=", { sm->a1, sm->a2 }); };
-  'wiki #'i id             => { append_id_link(sm, "wiki", "wiki-page", "/wiki_pages/", { sm->a1, sm->a2 }); };
+  'wiki #'i id             => { append_id_link(sm, "wiki", "wiki-page", "/wiki/show/", { sm->a1, sm->a2 }); };
 
   'dmail #'i id '/' dmail_key => { append_dmail_key_link(sm); };
 
@@ -857,7 +861,7 @@ static void append_mention(StateMachine * sm, const std::string_view name) {
   append(sm, "<a class=\"dtext-link dtext-user-mention-link\" data-user-name=\"");
   append_html_escaped(sm, name);
   append(sm, "\" href=\"");
-  append_relative_url(sm, "/users?name=");
+  append_relative_url(sm, "/user/show?name=");
   append_uri_escaped(sm, name);
   append(sm, "\">@");
   append_html_escaped(sm, name);
@@ -911,34 +915,29 @@ static void append_internal_url(StateMachine * sm, const DText::URL& url) {
     auto id = path_components.at(1);
 
     if (!id.empty() && std::all_of(id.begin(), id.end(), ::isdigit)) {
-      if (controller == "posts" && fragment.empty()) {
+      if (controller == "post" && fragment.empty()) {
         // https://danbooru.donmai.us/posts/6000000#comment_2288996
-        return append_id_link(sm, "post", "post", "/posts/", id);
-      } else if (controller == "pools" && query.empty()) {
+        return append_id_link(sm, "post", "post", "/post/show/", id);
+      } else if (controller == "pool" && query.empty()) {
         // https://danbooru.donmai.us/pools/903?page=2
-        return append_id_link(sm, "pool", "pool", "/pools/", id);
-      } else if (controller == "comments") {
-        return append_id_link(sm, "comment", "comment", "/comments/", id);
-      } else if (controller == "forum_posts") {
-        return append_id_link(sm, "forum", "forum-post", "/forum_posts/", id);
-      } else if (controller == "forum_topics" && query.empty() && fragment.empty()) {
+        return append_id_link(sm, "pool", "pool", "/pool/show/", id);
+      } else if (controller == "comment") {
+        return append_id_link(sm, "comment", "comment", "/comment/show/", id);
+      } else if (controller == "forum") {
+        return append_id_link(sm, "forum", "forum-post", "/forum/show/", id);
+      } else if (controller == "forum" && query.empty() && fragment.empty()) {
         // https://danbooru.donmai.us/forum_topics/1234?page=2
         // https://danbooru.donmai.us/forum_topics/1234#forum_post_5678
-        return append_id_link(sm, "topic", "forum-topic", "/forum_topics/", id);
-      } else if (controller == "users") {
-        return append_id_link(sm, "user", "user", "/users/", id);
-      } else if (controller == "artists") {
-        return append_id_link(sm, "artist", "artist", "/artists/", id);
-      } else if (controller == "notes") {
-        return append_id_link(sm, "note", "note", "/notes/", id);
-      } else if (controller == "favorite_groups" && query.empty()) {
-        // https://danbooru.donmai.us/favorite_groups/1234?page=2
-        return append_id_link(sm, "favgroup", "favorite-group", "/favorite_groups/", id);
-      } else if (controller == "wiki_pages" && fragment.empty()) {
+        return append_id_link(sm, "topic", "forum-topic", "/forum/show/", id);
+      } else if (controller == "user") {
+        return append_id_link(sm, "user", "user", "/user/show/", id);
+      } else if (controller == "artist") {
+        return append_id_link(sm, "artist", "artist", "/artist/show/", id);
+      } else if (controller == "wiki" && fragment.empty()) {
         // http://danbooru.donmai.us/wiki_pages/10933#dtext-self-upload
-        return append_id_link(sm, "wiki", "wiki-page", "/wiki_pages/", id);
+        return append_id_link(sm, "wiki", "wiki-page", "/wiki/show/", id);
       }
-    } else if (controller == "wiki_pages" && fragment.empty()) {
+    } else if (controller == "wiki" && fragment.empty()) {
       return append_wiki_link(sm, {}, id, {}, id, {});
     }
   } else if (path_components.size() >= 3) {
@@ -949,7 +948,7 @@ static void append_internal_url(StateMachine * sm, const DText::URL& url) {
 
     if (!id.empty() && std::all_of(id.begin(), id.end(), ::isdigit)) {
       if (controller == "post" && action == "show") {
-        return append_id_link(sm, "post", "post", "/posts/", id);
+        return append_id_link(sm, "post", "post", "/post/show/", id);
       }
     }
   }
@@ -987,7 +986,7 @@ static void append_post_search_link(StateMachine * sm, const std::string_view pr
   auto normalized_title = std::string(title);
 
   append(sm, "<a class=\"dtext-link dtext-post-search-link\" href=\"");
-  append_relative_url(sm, "/posts?tags=");
+  append_relative_url(sm, "/post?tags=");
   append_uri_escaped(sm, search);
   append(sm, "\">");
 
@@ -1040,7 +1039,7 @@ static void append_wiki_link(StateMachine * sm, const std::string_view prefix, c
   }
 
   append(sm, "<a class=\"dtext-link dtext-wiki-link\" href=\"");
-  append_relative_url(sm, "/wiki_pages/");
+  append_relative_url(sm, "/wiki/show?title=");
   append_uri_escaped(sm, normalized_tag);
 
   if (!anchor.empty()) {
