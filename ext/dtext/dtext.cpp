@@ -4177,7 +4177,7 @@ static void append_mention(StateMachine * sm, const std::string_view name) {
   append(sm, "<a class=\"dtext-link dtext-user-mention-link\" data-user-name=\"");
   append_html_escaped(sm, name);
   append(sm, "\" href=\"");
-  append_relative_url(sm, "/user/show?name=");
+  append_relative_url(sm, "/users?name=");
   append_uri_escaped(sm, name);
   append(sm, "\">@");
   append_html_escaped(sm, name);
@@ -4233,22 +4233,22 @@ static void append_internal_url(StateMachine * sm, const DText::URL& url) {
     if (!id.empty() && std::all_of(id.begin(), id.end(), ::isdigit)) {
       if (controller == "post" && fragment.empty()) {
         // https://danbooru.donmai.us/posts/6000000#comment_2288996
-        return append_id_link(sm, "post", "post", "/post/show/", id);
+        return append_id_link(sm, "post", "post", "/posts/", id);
       } else if (controller == "pool" && query.empty()) {
         // https://danbooru.donmai.us/pools/903?page=2
-        return append_id_link(sm, "pool", "pool", "/pool/show/", id);
+        return append_id_link(sm, "pool", "pool", "/pools/", id);
       } else if (controller == "comment") {
-        return append_id_link(sm, "comment", "comment", "/comment/show/", id);
+        return append_id_link(sm, "comment", "comment", "/comments/", id);
       } else if (controller == "forum") {
-        return append_id_link(sm, "forum", "forum-post", "/forum/show/", id);
+        return append_id_link(sm, "forum", "forum-post", "/forums/", id);
       } else if (controller == "forum" && query.empty() && fragment.empty()) {
         // https://danbooru.donmai.us/forum_topics/1234?page=2
         // https://danbooru.donmai.us/forum_topics/1234#forum_post_5678
-        return append_id_link(sm, "topic", "forum-topic", "/forum/show/", id);
+        return append_id_link(sm, "topic", "forum-topic", "/forums/", id);
       } else if (controller == "user") {
-        return append_id_link(sm, "user", "user", "/user/show/", id);
+        return append_id_link(sm, "user", "user", "/users/", id);
       } else if (controller == "artist") {
-        return append_id_link(sm, "artist", "artist", "/artist/show/", id);
+        return append_id_link(sm, "artist", "artist", "/artists/", id);
       } else if (controller == "wiki" && fragment.empty()) {
         // http://danbooru.donmai.us/wiki_pages/10933#dtext-self-upload
         return append_id_link(sm, "wiki", "wiki-page", "/wiki/show/", id);
@@ -4264,7 +4264,7 @@ static void append_internal_url(StateMachine * sm, const DText::URL& url) {
 
     if (!id.empty() && std::all_of(id.begin(), id.end(), ::isdigit)) {
       if (controller == "post" && action == "show") {
-        return append_id_link(sm, "post", "post", "/post/show/", id);
+        return append_id_link(sm, "post", "post", "/posts/", id);
       }
     }
   }
@@ -4390,7 +4390,7 @@ static void append_paged_link(StateMachine * sm, const char * title, const char 
 
 static void append_dmail_key_link(StateMachine * sm) {
   append(sm, "<a class=\"dtext-link dtext-id-link dtext-dmail-id-link\" href=\"");
-  append_relative_url(sm, "/dmail/show/");
+  append_relative_url(sm, "/dmails/");
   append(sm, sm->a1, sm->a2);
   append(sm, "?key=");
   append_uri_escaped(sm, { sm->b1, sm->b2 });
@@ -5308,39 +5308,39 @@ _eof_trans:
 	break;
 	case 67:
 #line 295 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "post", "post", "/post/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "post", "post", "/posts/", { sm->a1, sm->a2 }); }}
 	break;
 	case 68:
 #line 296 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "forum", "forum-post", "/forum/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "forum", "forum-post", "/forums/", { sm->a1, sm->a2 }); }}
 	break;
 	case 69:
 #line 297 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "topic", "forum-topic", "/forum/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "topic", "forum-topic", "/forums/", { sm->a1, sm->a2 }); }}
 	break;
 	case 70:
 #line 298 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "comment", "comment", "/comment/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "comment", "comment", "/comments/", { sm->a1, sm->a2 }); }}
 	break;
 	case 71:
 #line 299 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "dmail", "dmail", "/dmail/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "dmail", "dmail", "/dmails/", { sm->a1, sm->a2 }); }}
 	break;
 	case 72:
 #line 300 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "pool", "pool", "/pool/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "pool", "pool", "/pools/", { sm->a1, sm->a2 }); }}
 	break;
 	case 73:
 #line 301 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "user", "user", "/user/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "user", "user", "/users/", { sm->a1, sm->a2 }); }}
 	break;
 	case 74:
 #line 302 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "artist", "artist", "/artist/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "artist", "artist", "/artists/", { sm->a1, sm->a2 }); }}
 	break;
 	case 75:
 #line 303 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "user report", "user-report", "/user_flag/show/", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "user report", "user-report", "/user_flags/", { sm->a1, sm->a2 }); }}
 	break;
 	case 76:
 #line 304 "ext/dtext/dtext.cpp.rl"
@@ -5364,11 +5364,11 @@ _eof_trans:
 	break;
 	case 81:
 #line 309 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "mod action", "mod-action", "/mod_action?id=", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "mod action", "mod-action", "/mod_actions?id=", { sm->a1, sm->a2 }); }}
 	break;
 	case 82:
 #line 310 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "record", "user-record", "/user_record?id=", { sm->a1, sm->a2 }); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_id_link(sm, "record", "user-record", "/user_records?id=", { sm->a1, sm->a2 }); }}
 	break;
 	case 83:
 #line 311 "ext/dtext/dtext.cpp.rl"
@@ -5380,7 +5380,7 @@ _eof_trans:
 	break;
 	case 85:
 #line 315 "ext/dtext/dtext.cpp.rl"
-	{( sm->te) = ( sm->p);( sm->p)--;{ append_paged_link(sm, "topic #", "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"", "/forum_topics/", "?page="); }}
+	{( sm->te) = ( sm->p);( sm->p)--;{ append_paged_link(sm, "topic #", "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"", "/forums/", "?page="); }}
 	break;
 	case 86:
 #line 316 "ext/dtext/dtext.cpp.rl"
@@ -5584,11 +5584,11 @@ _eof_trans:
 	break;
 	case 107:
 #line 297 "ext/dtext/dtext.cpp.rl"
-	{{( sm->p) = ((( sm->te)))-1;}{ append_id_link(sm, "topic", "forum-topic", "/forum/show/", { sm->a1, sm->a2 }); }}
+	{{( sm->p) = ((( sm->te)))-1;}{ append_id_link(sm, "topic", "forum-topic", "/forums/", { sm->a1, sm->a2 }); }}
 	break;
 	case 108:
 #line 299 "ext/dtext/dtext.cpp.rl"
-	{{( sm->p) = ((( sm->te)))-1;}{ append_id_link(sm, "dmail", "dmail", "/dmail/show/", { sm->a1, sm->a2 }); }}
+	{{( sm->p) = ((( sm->te)))-1;}{ append_id_link(sm, "dmail", "dmail", "/dmails/", { sm->a1, sm->a2 }); }}
 	break;
 	case 109:
 #line 334 "ext/dtext/dtext.cpp.rl"
