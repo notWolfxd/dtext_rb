@@ -335,11 +335,11 @@ inline := |*
     append_bare_named_url(sm, { sm->b1, sm->b2 + 1 }, { sm->a1, sm->a2 });
   };
 
-  bracketed_textile_link | named_bbcode_link => {
+  bracketed_textile_link | named_bbcode_link | markdown_link => {
     append_named_url(sm, { sm->b1, sm->b2 }, { sm->a1, sm->a2 });
   };
 
-  markdown_link | html_link => {
+  html_link => {
     append_named_url(sm, { sm->a1, sm->a2 }, { sm->b1, sm->b2 });
   };
 
