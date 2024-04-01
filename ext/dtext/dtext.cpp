@@ -10070,7 +10070,7 @@ _eof_trans:
     if (dstack_check(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
     } else {
-      dstack_close_until(BLOCK_COLOR)
+      dstack_close_until(BLOCK_COLOR);
     }
   }}
 	break;
