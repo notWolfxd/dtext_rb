@@ -710,21 +710,30 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  open_color space* => {
+
+  open_color => {
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<span style=\"color:#FF761C;\">");
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
+    fcall inline;
   };
 
-  aliased_color space* => {
-    g_debug("block [color=]");
+  aliased_color => {
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<span style=\"color:");
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
     append_block_html_escaped({ a1, a2 });
-    append("\">");
+    append_block("\">");
+    fcall inline;
   };
 
-  space* close_color ws* => {
-    dstack_close_until(BLOCK_COLOR);
+
+  newline* close_color => {
+    g_debug("inline [/color]");
+
+    if (dstack_check(INLINE_COLOR)) {
+      dstack_close_element(INLINE_COLOR, { ts, te });
+    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
+      fret;
+    }
   };
 
   open_expand space* => {
@@ -1368,7 +1377,7 @@ void StateMachine::dstack_rewind() {
     case BLOCK_SPOILER: append_block("</div>"); break;
     case BLOCK_QUOTE: append_block("</blockquote>"); break;
     case BLOCK_EXPAND: append_block("</div></details>"); break;
-    case BLOCK_COLOR: append_block("</span>"); break;
+    case BLOCK_COLOR: append_block("</p>"); break;
     case BLOCK_NODTEXT: append_block("</p>"); break;
     case BLOCK_CODE: append_block("</pre>"); break;
     case BLOCK_TD: append_block("</td>"); break;
@@ -1382,6 +1391,7 @@ void StateMachine::dstack_rewind() {
     case INLINE_S: append("</s>"); break;
     case INLINE_TN: append("</span>"); break;
     case INLINE_CENTER: append("</div>"); break;
+    case INLINE_COLOR: append("</span>"); break;
     case INLINE_CODE: append("</code>"); break;
     case INLINE_EMOJI: append("</emoji>"); break;
 
