@@ -7796,7 +7796,7 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
   }
 
   append("<a class=\"dtext-link dtext-wiki-link\" href=\"");
-  append_relative_url("/wiki_pages/");
+  append_relative_url("/wiki/");
   append_uri_escaped(normalized_tag);
 
   if (!anchor.empty()) {
