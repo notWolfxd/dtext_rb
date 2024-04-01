@@ -428,6 +428,20 @@ inline := |*
     }
   };
 
+  open_color => {
+    dstack_open_element(INLINE_COLOR, "<span class=\"color:#FF761C;\">");
+  };
+
+  newline* close_color => {
+    g_debug("inline [/color]");
+
+    if (dstack_check(INLINE_COLOR)) {
+      dstack_close_element(INLINE_COLOR, { ts, te });
+    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
+      fret;
+    }
+  };
+
   open_center => {
     dstack_open_element(INLINE_CENTER, "<div class=\"center\">");
   };
@@ -489,7 +503,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | open_color | aliased_color | hr | header | header_with_id | media_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | media_embed) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -715,29 +729,12 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  open_color space* => {
-    g_debug("inline [color]");
-    dstack_close_leaf_blocks();
-    dstack_open_element(INLINE_COLOR, "<p style=\"color:#FF761C;\">");
-    fcall inline;
-  };
-
   aliased_color => {
     g_debug("block [color=]");
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
     append_html_escaped({ a1, a2 });
     append(";\">");
-  };
-
-  space* close_color ws* => {
-    g_debug("inline [/color]");
-
-    if (dstack_check(INLINE_COLOR)) {
-      dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
-      fret;
-    }
   };
 
   open_expand space* => {
@@ -780,6 +777,12 @@ main := |*
   open_tn => {
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TN, "<p class=\"tn\">");
+    fcall inline;
+  };
+
+  open_color => {
+    dstack_close_leaf_blocks();
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
     fcall inline;
   };
 
