@@ -91,6 +91,7 @@ action media_embeds_enabled { options.f_media_embeds }
 action in_quote { dstack_is_open(BLOCK_QUOTE) }
 action in_expand { dstack_is_open(BLOCK_EXPAND) }
 action in_spoiler { dstack_is_open(BLOCK_SPOILER) }
+action in_color { dstack_is_open(BLOCK_COLOR) }
 action save_tag_attribute { tag_attributes[{ a1, a2 }] = { b1, b2 }; }
 
 # Matches the beginning or the end of the string. The input string has null bytes prepended and appended to mark the ends of the string.
@@ -168,7 +169,7 @@ delimited_mention = '<@' (nonspace nonnewline*) >mark_a1 @mark_a2 :>> '>';
 bracket_tags = (
   'spoiler'i | 'spoilers'i | 'nodtext'i | 'quote'i | 'expand'i | 'code'i |
   'table'i | 'colgroup'i | 'col'i | 'thead'i | 'tbody'i | 'tr'i | 'th'i | 'td'i |
-  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i | 'center'i 
+  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i | 'center'i | 'color'i
 );
 
 http = 'http'i 's'i? '://';
@@ -246,6 +247,8 @@ header = 'h'i [123456] >mark_a1 %mark_a2 '.' >mark_b1 >mark_b2 ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' header_id >mark_b1 %mark_b2 '.' ws*;
 aliased_expand = ('[expand'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
                | ('<expand'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
+aliased_color = ('[color'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
+               | ('<color'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
 
 list_item = '*'+ >mark_e1 %mark_e2 ws+ nonnewline+ >mark_f1 %mark_f2;
 
@@ -280,6 +283,7 @@ open_br = '[br]'i | '<br>'i;
 
 open_tn = '[tn]'i | '<tn>'i;
 open_center = '[center]'i | '<center>'i;
+open_color = '[color]'i | '<color>'i;
 open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
@@ -299,6 +303,7 @@ close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
 close_tn = '[/tn]'i | '</tn>'i;
 close_center = '[/center]'i | '</center>'i;
+close_color = '[/color'i (']' when in_color) | '</color'i ('>' when in_color);
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
@@ -320,6 +325,7 @@ basic_inline := |*
 inline := |*
   'post #'i id             => { append_id_link("post", "post", "/posts/", { a1, a2 }); };
   'forum #'i id            => { append_id_link("forum", "forum-post", "/forums/", { a1, a2 }); };
+  'topic #'i id            => { append_id_link("topic", "forum-topic", "/forums/", { a1, a2 }); };
   'comment #'i id          => { append_id_link("comment", "comment", "/comments/", { a1, a2 }); };
   'dmail #'i id            => { append_id_link("dmail", "dmail", "/dmails/", { a1, a2 }); };
   'pool #'i id             => { append_id_link("pool", "pool", "/pools/", { a1, a2 }); };
@@ -427,7 +433,7 @@ inline := |*
   };
 
   newline* close_center newline? => {
-    g_debug("inline [/tn]");
+    g_debug("inline [/center]");
 
     if (dstack_check(INLINE_CENTER)) {
       dstack_close_element(INLINE_CENTER, { ts, te });
@@ -483,7 +489,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | media_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | open_color | aliased_color | hr | header | header_with_id | media_embed) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -702,6 +708,23 @@ main := |*
   code_fence => {
     dstack_close_leaf_blocks();
     append_code_fence({ b1, b2 }, { a1, a2 });
+  };
+
+  open_color space* => {
+    dstack_close_leaf_blocks();
+    dstack_open_element(BLOCK_COLOR, "<span style=\"color:#FF761C;\">");
+  };
+
+  aliased_color space* => {
+    g_debug("block [color=]");
+    dstack_close_leaf_blocks();
+    dstack_open_element(BLOCK_COLOR, "<span style=\"color:");
+    append_block_html_escaped({ a1, a2 });
+    append("\">");
+  };
+
+  space* close_color ws* => {
+    dstack_close_until(BLOCK_COLOR);
   };
 
   open_expand space* => {
@@ -1345,6 +1368,7 @@ void StateMachine::dstack_rewind() {
     case BLOCK_SPOILER: append_block("</div>"); break;
     case BLOCK_QUOTE: append_block("</blockquote>"); break;
     case BLOCK_EXPAND: append_block("</div></details>"); break;
+    case BLOCK_COLOR: append_block("</span>"); break;
     case BLOCK_NODTEXT: append_block("</p>"); break;
     case BLOCK_CODE: append_block("</pre>"); break;
     case BLOCK_TD: append_block("</td>"); break;
@@ -1390,7 +1414,7 @@ void StateMachine::dstack_rewind() {
 void StateMachine::dstack_close_leaf_blocks() {
   g_debug("dstack close leaf blocks");
 
-  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_CENTER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_TN) && !dstack_check(BLOCK_MEDIA_GALLERY)) {
+  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_CENTER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_COLOR) && !dstack_check(BLOCK_TN) && !dstack_check(BLOCK_MEDIA_GALLERY)) {
     dstack_rewind();
   }
 }
