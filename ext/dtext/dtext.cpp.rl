@@ -91,7 +91,6 @@ action media_embeds_enabled { options.f_media_embeds }
 action in_quote { dstack_is_open(BLOCK_QUOTE) }
 action in_expand { dstack_is_open(BLOCK_EXPAND) }
 action in_spoiler { dstack_is_open(BLOCK_SPOILER) }
-action in_color { dstack_is_open(BLOCK_COLOR) }
 action save_tag_attribute { tag_attributes[{ a1, a2 }] = { b1, b2 }; }
 
 # Matches the beginning or the end of the string. The input string has null bytes prepended and appended to mark the ends of the string.
@@ -169,7 +168,7 @@ delimited_mention = '<@' (nonspace nonnewline*) >mark_a1 @mark_a2 :>> '>';
 bracket_tags = (
   'spoiler'i | 'spoilers'i | 'nodtext'i | 'quote'i | 'expand'i | 'code'i |
   'table'i | 'colgroup'i | 'col'i | 'thead'i | 'tbody'i | 'tr'i | 'th'i | 'td'i |
-  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i | 'center'i | 'color'i
+  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i
 );
 
 http = 'http'i 's'i? '://';
@@ -236,7 +235,6 @@ alnum_id = alnum+ >mark_a1 %mark_a2;
 page = digit+ >mark_b1 %mark_b2;
 dmail_key = (alnum | '=' | '-')+ >mark_b1 %mark_b2;
 
-# !asset #1234
 # !post #1234
 # !post #1234: This is a caption.
 # * !post #1: This is the first image in a media gallery.
@@ -248,8 +246,6 @@ header = 'h'i [123456] >mark_a1 %mark_a2 '.' >mark_b1 >mark_b2 ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' header_id >mark_b1 %mark_b2 '.' ws*;
 aliased_expand = ('[expand'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
                | ('<expand'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
-aliased_color = ('[color'i (ws* '=' ws* | ws+) ((nonnewline - ']')* >mark_a1 %mark_a2) ']')
-               | ('<color'i (ws* '=' ws* | ws+) ((nonnewline - '>')* >mark_a1 %mark_a2) '>');
 
 list_item = '*'+ >mark_e1 %mark_e2 ws+ nonnewline+ >mark_f1 %mark_f2;
 
@@ -270,7 +266,6 @@ open_spoilers = ('[spoiler'i 's'i? ']') | ('<spoiler'i 's'i? '>');
 open_nodtext = '[nodtext]'i | '<nodtext>'i;
 open_quote = '[quote]'i | '<quote>'i | '<blockquote>'i;
 open_expand = '[expand]'i | '<expand>'i;
-open_color = '[color]'i | '<color>'i;
 open_code = '[code]'i | '<code>'i;
 open_code_lang = '[code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) ']' | '<code'i ws* '=' ws* (alnum+ >mark_a1 %mark_a2) '>';
 open_table = '[table]'i | '<table>'i;
@@ -284,7 +279,6 @@ open_td = '[td'i tag_attributes :>> ']' | '<td'i tag_attributes :>> '>';
 open_br = '[br]'i | '<br>'i;
 
 open_tn = '[tn]'i | '<tn>'i;
-open_center = '[center]'i | '<center>'i;
 open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
@@ -294,7 +288,6 @@ close_spoilers = ('[/spoiler'i 's'i? ']') | ('</spoiler'i 's'i? '>');
 close_nodtext = '[/nodtext]'i | '</nodtext>'i;
 close_quote = '[/quote'i (']' when in_quote) | '</quote'i ('>' when in_quote) | '</blockquote'i (']' when in_quote);
 close_expand = '[/expand'i (']' when in_expand) | '</expand'i ('>' when in_expand);
-close_color = '[/color]'i | '</color>'i | '[/color'i (']' when in_color) | '</color'i ('>' when in_color);
 close_code = '[/code]'i | '</code>'i;
 close_table = '[/table]'i | '</table>'i;
 close_colgroup = '[/colgroup]'i | '</colgroup>'i;
@@ -304,7 +297,6 @@ close_tr = '[/tr]'i | '</tr>'i;
 close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
 close_tn = '[/tn]'i | '</tn>'i;
-close_center = '[/center]'i | '</center>'i;
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
@@ -326,21 +318,19 @@ basic_inline := |*
 inline := |*
   'post #'i id             => { append_id_link("post", "post", "/posts/", { a1, a2 }); };
   'forum #'i id            => { append_id_link("forum", "forum-post", "/forums/", { a1, a2 }); };
-  'topic #'i id            => { append_id_link("topic", "forum-topic", "/forums/", { a1, a2 }); };
   'comment #'i id          => { append_id_link("comment", "comment", "/comments/", { a1, a2 }); };
   'dmail #'i id            => { append_id_link("dmail", "dmail", "/dmails/", { a1, a2 }); };
   'pool #'i id             => { append_id_link("pool", "pool", "/pools/", { a1, a2 }); };
   'user #'i id             => { append_id_link("user", "user", "/users/", { a1, a2 }); };
   'artist #'i id           => { append_id_link("artist", "artist", "/artists/", { a1, a2 }); };
-  'user report #'i id           => { append_id_link("user report", "user-report", "/user_flags/", { a1, a2 }); };
-  'tag alias #'i id            => { append_id_link("tag alias", "tag-alias", "https://beta.sankakucomplex.com/tag_aliases?id[0]=", { a1, a2 }); };
-  'tag implication #'i id      => { append_id_link("tag implication", "tag-implication", "https://beta.sankakucomplex.com/tag_implications?id[0]=", { a1, a2 }); };
-  'tag translation #'i id      => { append_id_link("tag translation", "tag-translation", "https://beta.sankakucomplex.com/tag_translations?id[0]=", { a1, a2 }); };
-  'book #'i id      => { append_id_link("book", "book", "https://beta.sankakucomplex.com/books/", { a1, a2 }); };
-  'series #'i id      => { append_id_link("series", "series", "https://beta.sankakucomplex.com/series/", { a1, a2 }); };
-  'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions?id=", { a1, a2 }); };
-  'record #'i id         => { append_id_link("record", "user-record", "/user_records?id=", { a1, a2 }); };
+  'tag alias #'i id            => { append_id_link("tag alias", "tag-alias", "/tag_aliases/", { a1, a2 }); };
+  'tag implication #'i id      => { append_id_link("tag implication", "tag-implication", "/tag_implications/", { a1, a2 }); };
+  'tag translation #'i id      => { append_id_link("tag implication", "tag-implication", "/tag_implications/", { a1, a2 }); };
+  'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions?action_id=", { a1, a2 }); };
+  'feedback #'i id         => { append_id_link("feedback", "user-feedback", "/user_records?id=", { a1, a2 }); };
   'wiki #'i id             => { append_id_link("wiki", "wiki-page", "/wiki/", { a1, a2 }); };
+
+  'twitter #'i id          => { append_id_link("twitter", "twitter", "https://twitter.com/i/web/status/", { a1, a2 }); };
 
   'dmail #'i id '/' dmail_key => { append_dmail_key_link({ a1, a2 }, { b1, b2 }); };
 
@@ -427,43 +417,6 @@ inline := |*
     }
   };
 
-  open_center => {
-    g_debug("inline [center]");
-    dstack_open_element(INLINE_CENTER, "<div class=\"center\">");
-  };
-
-  newline* close_center newline? => {
-    g_debug("inline [/center]");
-
-    if (dstack_check(INLINE_CENTER)) {
-      dstack_close_element(INLINE_CENTER, { ts, te });
-    } else if (dstack_close_element(BLOCK_CENTER, { ts, te })) {
-      fret;
-    }
-  };
-
-  open_color => {
-    g_debug("inline [color]");
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
-  };
-
-  aliased_color => {
-    g_debug("inline [color=]");
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:");
-    append_html_escaped({ a1, a2 });
-    append("\">");
-  };
-
-  newline* close_color => {
-    g_debug("inline [/color]");
-
-    if (dstack_check(INLINE_COLOR)) {
-      dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
-      fret;
-    }
-  };
-
   open_br => {
     if (header_mode) {
       append_html_escaped("<br>");
@@ -507,7 +460,7 @@ inline := |*
     dstack_open_element(INLINE_NODTEXT, "");
     fcall nodtext;
   };
-  
+
   # these are block level elements that should kick us out of the inline
   # scanner
 
@@ -739,6 +692,7 @@ main := |*
   };
 
   aliased_expand space* => {
+    g_debug("block [expand=]");
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_EXPAND, "<details>");
     append_block("<summary>");
@@ -750,20 +704,6 @@ main := |*
     dstack_close_until(BLOCK_EXPAND);
   };
 
-  open_color => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
-    fcall inline;
-  };
-
-  aliased_color => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
-    append_block_html_escaped({ a1, a2 });
-    append_block("\">");
-    fcall inline;
-  };
-
   open_nodtext blank_line? => {
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -772,19 +712,13 @@ main := |*
 
   ws* open_table => {
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_TABLE, "<table class=\"highlightable\">");
+    dstack_open_element(BLOCK_TABLE, "<table class=\"striped\">");
     fcall table;
   };
 
   open_tn => {
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TN, "<p class=\"tn\">");
-    fcall inline;
-  };
-
-  ws* open_center => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_CENTER, "<p class=\"center\">");
     fcall inline;
   };
 
@@ -819,7 +753,6 @@ main := |*
   };
 
   list_item => {
-    g_debug("block list");
     dstack_open_list(e2 - e1);
     fexec f1;
     fcall inline;
@@ -1048,24 +981,25 @@ void StateMachine::append_internal_url(const DText::URL& url) {
     auto id = path_components.at(1);
 
     if (!id.empty() && std::all_of(id.begin(), id.end(), ::isdigit)) {
-      if (controller == "post" && fragment.empty()) {
+      if (controller == "posts" && fragment.empty()) {
         // https://danbooru.donmai.us/posts/6000000#comment_2288996
         return append_id_link("post", "post", "/posts/", id);
-      } else if (controller == "pool" && query.empty()) {
+      } else if (controller == "pools" && query.empty()) {
         // https://danbooru.donmai.us/pools/903?page=2
         return append_id_link("pool", "pool", "/pools/", id);
-      } else if (controller == "comment") {
+      } else if (controller == "comments") {
         return append_id_link("comment", "comment", "/comments/", id);
       } else if (controller == "forum") {
-        return append_id_link("forum", "forum-post", "/forums/", id);
-      } else if (controller == "forum" && query.empty() && fragment.empty()) {
-        // https://danbooru.donmai.us/forum_topics/1234?page=2
-        // https://danbooru.donmai.us/forum_topics/1234#forum_post_5678
-        return append_id_link("topic", "forum-topic", "/forums/", id);
-      } else if (controller == "user") {
+        return append_id_link("forum", "forum-post", "/forum/", id);
+      } else if (controller == "users") {
         return append_id_link("user", "user", "/users/", id);
-      } else if (controller == "artist") {
+      } else if (controller == "artists") {
         return append_id_link("artist", "artist", "/artists/", id);
+      } else if (controller == "notes") {
+        return append_id_link("note", "note", "/notes/", id);
+      } else if (controller == "favorite_groups" && query.empty()) {
+        // https://danbooru.donmai.us/favorite_groups/1234?page=2
+        return append_id_link("favgroup", "favorite-group", "/favorite_groups/", id);
       } else if (controller == "wiki" && fragment.empty()) {
         // http://danbooru.donmai.us/wiki_pages/10933#dtext-self-upload
         return append_id_link("wiki", "wiki-page", "/wiki/", id);
@@ -1398,16 +1332,12 @@ void StateMachine::dstack_rewind() {
     case INLINE_U: append("</u>"); break;
     case INLINE_S: append("</s>"); break;
     case INLINE_TN: append("</span>"); break;
-    case INLINE_CENTER: append("</div>"); break;
-    case INLINE_COLOR: append("</span>"); break;
     case INLINE_CODE: append("</code>"); break;
     case INLINE_EMOJI: append("</emoji>"); break;
 
     case BLOCK_MEDIA_EMBED: append_block("</media-embed>"); break;
     case BLOCK_MEDIA_GALLERY: append_block("</media-gallery>"); break;
     case BLOCK_TN: append_block("</p>"); break;
-    case BLOCK_CENTER: append_block("</p>"); break;
-    case BLOCK_COLOR: append_block("</p>"); break;
     case BLOCK_TABLE: append_block("</table>"); break;
     case BLOCK_COLGROUP: append_block("</colgroup>"); break;
     case BLOCK_THEAD: append_block("</thead>"); break;
@@ -1428,12 +1358,12 @@ void StateMachine::dstack_rewind() {
   }
 }
 
-// container blocks: [spoiler], [quote], [expand], [tn], [center], [color], media galleries (`* !post #1`)
+// container blocks: [spoiler], [quote], [expand], [tn], media galleries (`* !post #1`)
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 void StateMachine::dstack_close_leaf_blocks() {
   g_debug("dstack close leaf blocks");
 
-  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_TN) && !dstack_check(BLOCK_CENTER) && !dstack_check(BLOCK_COLOR) && !dstack_check(BLOCK_MEDIA_GALLERY)) {
+  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_TN) && !dstack_check(BLOCK_MEDIA_GALLERY)) {
     dstack_rewind();
   }
 }
