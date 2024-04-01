@@ -46,7 +46,7 @@ static const std::unordered_map<std::string_view, std::function<bool(std::string
 static unsigned char ascii_tolower(unsigned char c);
 
 
-#line 835 "ext/dtext/dtext.cpp.rl"
+#line 836 "ext/dtext/dtext.cpp.rl"
 
 
 
@@ -7549,7 +7549,7 @@ static const int dtext_en_table = 2369;
 static const int dtext_en_main = 1896;
 
 
-#line 838 "ext/dtext/dtext.cpp.rl"
+#line 839 "ext/dtext/dtext.cpp.rl"
 
 void StateMachine::dstack_push(element_t element) {
   dstack.push_back(element);
@@ -8292,7 +8292,7 @@ std::string StateMachine::parse() {
 	( act) = 0;
 	}
 
-#line 1572 "ext/dtext/dtext.cpp.rl"
+#line 1573 "ext/dtext/dtext.cpp.rl"
   
 #line 8285 "ext/dtext/dtext.cpp"
 	{
@@ -9735,15 +9735,15 @@ _eof_trans:
 	{{( p) = ((( te)))-1;}}
 	break;
 	case 183:
-#line 814 "ext/dtext/dtext.cpp.rl"
+#line 815 "ext/dtext/dtext.cpp.rl"
 	{( act) = 131;}
 	break;
 	case 184:
-#line 815 "ext/dtext/dtext.cpp.rl"
+#line 816 "ext/dtext/dtext.cpp.rl"
 	{( act) = 132;}
 	break;
 	case 185:
-#line 823 "ext/dtext/dtext.cpp.rl"
+#line 824 "ext/dtext/dtext.cpp.rl"
 	{( act) = 133;}
 	break;
 	case 186:
@@ -9795,20 +9795,33 @@ _eof_trans:
 #line 713 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     g_debug("inline [color]");
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
+    dstack_open_element(INLINE_COLOR, "<p style=\"color:#FF761C;\">");
+    {
+  size_t len = stack.size();
+
+  if (len > MAX_STACK_DEPTH) {
+    // Should never happen.
+    throw DTextError("too many nested elements");
+  }
+
+  if (top >= len) {
+    g_debug("growing stack %zi", len + 16);
+    stack.resize(len + 16, 0);
+  }
+{( (stack.data()))[( top)++] = ( cs); ( cs) = 1962;goto _again;}}
   }}
 	break;
 	case 190:
-#line 718 "ext/dtext/dtext.cpp.rl"
+#line 719 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
-    g_debug("inline [color=]");
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:");
+    g_debug("block [color=]");
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
     append_html_escaped({ a1, a2 });
     append("\">");
   }}
 	break;
 	case 191:
-#line 725 "ext/dtext/dtext.cpp.rl"
+#line 726 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     g_debug("inline [/color]");
 
@@ -9820,7 +9833,7 @@ _eof_trans:
   }}
 	break;
 	case 192:
-#line 754 "ext/dtext/dtext.cpp.rl"
+#line 755 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -9840,7 +9853,7 @@ _eof_trans:
   }}
 	break;
 	case 193:
-#line 760 "ext/dtext/dtext.cpp.rl"
+#line 761 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TABLE, "<table class=\"highlightable\">");
@@ -9860,7 +9873,7 @@ _eof_trans:
   }}
 	break;
 	case 194:
-#line 766 "ext/dtext/dtext.cpp.rl"
+#line 767 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_CENTER, "<p class=\"center\">");
@@ -9880,7 +9893,7 @@ _eof_trans:
   }}
 	break;
 	case 195:
-#line 772 "ext/dtext/dtext.cpp.rl"
+#line 773 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TN, "<p class=\"tn\">");
@@ -9900,7 +9913,7 @@ _eof_trans:
   }}
 	break;
 	case 196:
-#line 778 "ext/dtext/dtext.cpp.rl"
+#line 779 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     const std::string_view caption = { c1, c2 };
     const std::string_view prefix = { d1, d2 };
@@ -9929,7 +9942,7 @@ _eof_trans:
   }}
 	break;
 	case 197:
-#line 823 "ext/dtext/dtext.cpp.rl"
+#line 824 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     g_debug("block char");
     ( p)--;
@@ -10037,7 +10050,7 @@ _eof_trans:
   }}
 	break;
 	case 205:
-#line 735 "ext/dtext/dtext.cpp.rl"
+#line 736 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_EXPAND, "<details>");
@@ -10045,7 +10058,7 @@ _eof_trans:
   }}
 	break;
 	case 206:
-#line 741 "ext/dtext/dtext.cpp.rl"
+#line 742 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("block [expand=]");
     dstack_close_leaf_blocks();
@@ -10056,13 +10069,13 @@ _eof_trans:
   }}
 	break;
 	case 207:
-#line 750 "ext/dtext/dtext.cpp.rl"
+#line 751 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_until(BLOCK_EXPAND);
   }}
 	break;
 	case 208:
-#line 754 "ext/dtext/dtext.cpp.rl"
+#line 755 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -10082,7 +10095,7 @@ _eof_trans:
   }}
 	break;
 	case 209:
-#line 793 "ext/dtext/dtext.cpp.rl"
+#line 794 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
 
@@ -10106,14 +10119,14 @@ _eof_trans:
   }}
 	break;
 	case 210:
-#line 803 "ext/dtext/dtext.cpp.rl"
+#line 804 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
     append_block("<hr>");
   }}
 	break;
 	case 211:
-#line 808 "ext/dtext/dtext.cpp.rl"
+#line 809 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_open_list(e2 - e1);
     {( p) = (( f1))-1;}
@@ -10133,7 +10146,7 @@ _eof_trans:
   }}
 	break;
 	case 212:
-#line 823 "ext/dtext/dtext.cpp.rl"
+#line 824 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("block char");
     ( p)--;
@@ -10196,7 +10209,7 @@ _eof_trans:
   }}
 	break;
 	case 215:
-#line 754 "ext/dtext/dtext.cpp.rl"
+#line 755 "ext/dtext/dtext.cpp.rl"
 	{{( p) = ((( te)))-1;}{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -10216,7 +10229,7 @@ _eof_trans:
   }}
 	break;
 	case 216:
-#line 823 "ext/dtext/dtext.cpp.rl"
+#line 824 "ext/dtext/dtext.cpp.rl"
 	{{( p) = ((( te)))-1;}{
     g_debug("block char");
     ( p)--;
@@ -10282,7 +10295,7 @@ _eof_trans:
 	}
 	}
 	break;
-#line 10045 "ext/dtext/dtext.cpp"
+#line 10058 "ext/dtext/dtext.cpp"
 		}
 	}
 
@@ -10295,7 +10308,7 @@ _again:
 #line 1 "NONE"
 	{( ts) = 0;}
 	break;
-#line 10056 "ext/dtext/dtext.cpp"
+#line 10069 "ext/dtext/dtext.cpp"
 		}
 	}
 
@@ -10315,7 +10328,7 @@ _again:
 	_out: {}
 	}
 
-#line 1573 "ext/dtext/dtext.cpp.rl"
+#line 1574 "ext/dtext/dtext.cpp.rl"
 
   g_debug("EOF; closing stray blocks");
   dstack_close_all();

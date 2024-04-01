@@ -712,12 +712,13 @@ main := |*
 
   open_color => {
     g_debug("inline [color]");
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
+    dstack_open_element(INLINE_COLOR, "<p style=\"color:#FF761C;\">");
+    fcall inline;
   };
 
   aliased_color => {
-    g_debug("inline [color=]");
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:");
+    g_debug("block [color=]");
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
     append_html_escaped({ a1, a2 });
     append("\">");
   };
