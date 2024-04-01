@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+  # frozen_string_literal: true
 
 require "dtext"
 require "cgi"
@@ -217,20 +217,47 @@ class DTextTest < Minitest::Test
     assert_parse('<p>@<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="https://twitter.com/eshaolang">@eshaolang</a></p>', '@"@eshaolang":[https://twitter.com/eshaolang]', disable_mentions: true)
   end
 
-  def test_sanitize_heart
+  def test_sanitize_html_entities
     assert_parse('<p>&lt;3</p>', "<3")
-  end
-
-  def test_sanitize_less_than
     assert_parse('<p>&lt;</p>', "<")
-  end
-
-  def test_sanitize_greater_than
     assert_parse('<p>&gt;</p>', ">")
+    assert_parse('<p>&amp;</p>', "&")
+    assert_parse('<p>&quot;</p>', '"')
   end
 
-  def test_sanitize_ampersand
-    assert_parse('<p>&amp;</p>', "&")
+  def test_html_entities
+    assert_inline_parse("&amp;", "&amp;")
+    assert_inline_parse("&lt;", "&lt;")
+    assert_inline_parse("&gt;", "&gt;")
+    assert_inline_parse("&quot;", "&quot;")
+    assert_inline_parse("'", "&#39;")
+    assert_inline_parse("'", "&apos;")
+    assert_inline_parse("[", "&lbrack;")
+    assert_inline_parse("*", "&ast;")
+    assert_inline_parse(":", "&colon;")
+    assert_inline_parse("@", "&commat;")
+    assert_inline_parse("`", "&grave;")
+    assert_inline_parse("#", "&num;")
+    assert_inline_parse(".", "&period;")
+
+    assert_inline_parse("&amp;lt;", "&amp;lt;")
+    assert_inline_parse("&lt;b&gt;foo&lt;/b&gt;", "&lt;b&gt;foo&lt;/b&gt;")
+    assert_inline_parse("[b]foo[/b]", "&lbrack;b]foo&lbrack;/b]")
+    assert_inline_parse("{{foo}}", "&lbrace;&lbrace;foo}}")
+    assert_inline_parse("http://google.com", "http&colon;//google.com")
+    assert_inline_parse("&quot;title&quot;:/posts", "&quot;title&quot;:/posts")
+    assert_inline_parse("@user", "&commat;user")
+    assert_inline_parse("post #1", "post &num;1")
+    assert_parse("<p>h4. See also</p>", "h4&period; See also")
+    assert_parse("<p>```<br>code<br>```</p>", "&grave;&grave;&grave;\ncode\n&grave;&grave;&grave;")
+    assert_parse("<p>* list</p>", "&ast; list")
+
+    assert_inline_parse('<a class="dtext-link" href="/posts">&amp;quot;title&amp;quot;</a>', '"&quot;title&quot;":/posts')
+    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki_pages/tiger_%26amp%3B_bunny">tiger_&amp;amp;_bunny</a>', '[[tiger_&amp;_bunny]]')
+
+    assert_inline_parse('&amp;lt;', '[nodtext]&lt;[/nodtext]')
+    assert_parse('<pre>&amp;lt;</pre>', '[code]&lt;[/code]')
+    assert_parse('<pre>&amp;lt;</pre>', "```\n&lt;\n```")
   end
 
   def test_wiki_links
@@ -364,6 +391,10 @@ class DTextTest < Minitest::Test
 
     # assert_parse('<p>inline <span class="spoiler">foo</span></p><p>[/spoiler]</p>', "inline [spoiler]foo\n\n[/spoiler]")
     assert_parse('<p>inline <span class="spoiler">foo</span></p>', "inline [spoiler]foo\n\n[/spoiler]") # XXX wrong
+
+    # assert_parse('<div class="spoiler"><p>foo</p></div>', "[spoiler]\nfoo\n [/spoiler]") # XXX
+    assert_parse('<div class="spoiler"><p>foo</p></div>', "[spoiler]\nfoo\n\n [/spoiler]")
+    assert_parse('<div class="spoiler"><ul><li>foo</li></ul></div>', "[spoiler]\n* foo\n [/spoiler]")
   end
 
   def test_paragraphs
@@ -428,6 +459,8 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><blockquote><h1>header</h1></blockquote></blockquote>', %{[quote]\n\n[quote]\n\nh1. header\n[/quote]\n\n[/quote]})
 
     assert_parse('<blockquote><h1>header</h1></blockquote><p>one<br>two</p>', %{[quote]\nh1. header\n[/quote]\none\ntwo})
+    
+    assert_parse('<p>foo <strong>bar</strong></p><h4>See also</h4>', "foo [b]bar\nh4. See also")
   end
 
   def test_inline_elements
@@ -465,6 +498,9 @@ class DTextTest < Minitest::Test
   def test_block_tn
     assert_parse('<p class="tn">bar</p>', "[tn]bar[/tn]")
     assert_parse('<p class="tn">bar</p>', "<tn>bar</tn>")
+
+    assert_parse('<p>foo <strong>bar</strong></p><p class="tn">bar</p>', "foo [b]bar\n\n[tn]bar[/tn]")
+    assert_parse('<p>foo <strong>bar<br><span class="tn"><br>bar</span></strong></p>', "foo [b]bar\n[tn]\nbar\n[/tn]") # XXX should be treated as a block tag?
   end
 
   def test_quote_blocks
@@ -489,6 +525,20 @@ class DTextTest < Minitest::Test
 
     assert_parse("<p>inline <em>foo</em></p><blockquote><p>blah blah</p></blockquote>", "inline [i]foo\n\n[quote]blah blah[/quote]")
     assert_parse('<p>inline <span class="spoiler">foo </span></p><blockquote><p>blah blah</p></blockquote>', "inline [spoiler]\n\nfoo [quote]blah blah[/quote]")
+    
+    assert_parse("<p>blah</p><blockquote><p>blah</p></blockquote>", "blah\n[quote]\nblah\n[/quote]")
+    assert_parse("<p><strong>unclosed</strong></p><blockquote><p>blah</p></blockquote>", "[b]unclosed\n[quote]\nblah\n[/quote]")
+    assert_parse('<p>blah<br><span class="tn"></span></p><blockquote><p>blah</p></blockquote><p>[/tn]</p>', "blah\n[tn]\n[quote]\nblah[/quote]\n[/tn]") # XXX should strip <br> before [tn]
+    assert_parse('<p><br></p><blockquote><p>blah</p></blockquote>', "[br]\n[quote]\nblah\n[/quote]")
+    
+    assert_parse('<blockquote><div class="spoiler"><p>blah</p></div></blockquote>', "[quote][spoiler]blah[/spoiler] [/quote]")
+    assert_parse('<blockquote><p>blah said:</p><p>blah</p></blockquote>', "[quote]\nblah said:\n\nblah\n\n [/quote]")
+    assert_parse('<blockquote><p>blah</p></blockquote>', "[quote]\nblah\n [/quote]")
+    assert_parse('<blockquote><p>blah</p></blockquote>', "[quote]\nblah\n\n [/quote]")
+    assert_parse('<blockquote><ul><li>blah</li></ul></blockquote>', "[quote]\n* blah\n [/quote]")
+
+    assert_parse('<p>foo</p><blockquote><p>bar</p></blockquote>', "foo\n [quote]bar[/quote]")
+    assert_parse('<p>foo</p><p> </p><blockquote><p>bar</p></blockquote>', "foo\n\n [quote]bar[/quote]") # XXX wrong
   end
 
   def test_quote_blocks_with_list
@@ -652,6 +702,9 @@ class DTextTest < Minitest::Test
     assert_parse("<pre> ▲\n▲ ▲</pre>", "```\n ▲\n▲ ▲\n```")
 
     assert_parse('<blockquote><pre>code</pre></blockquote>', "[quote]\r\n```\r\ncode\r\n```\r\n[/quote]")
+    
+    assert_parse('<blockquote><pre>code</pre></blockquote>', "[quote]\r\n```\r\ncode\r\n```\r\n[/quote]")
+    assert_parse('<p>foo <strong>bar</strong></p><pre>blah</pre>', "foo [b]bar\n```\nblah\n```")
   end
 
   def test_urls
@@ -835,6 +888,26 @@ class DTextTest < Minitest::Test
     assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="Http://example.com">test</a>', '[Http://example.com](test)')
     assert_inline_parse('<em>one</em>(two)', '[i]one[/i](two)')
 
+    assert_inline_parse('<a class="dtext-link" href="/posts">test</a>', "[/posts](test)")
+    assert_inline_parse("[/b](test)", "[/b](test)")
+    assert_inline_parse("[/b]blah[/b](test)", "[/b]blah[/b](test)")
+
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">foo</a>(test)', '"foo":[http://example.com](test)')
+    assert_inline_parse('<a class="dtext-link" href="/posts">foo</a>(test)', '"foo":[/posts](test)')
+    assert_inline_parse('<a class="dtext-link" href="/posts">foo</a>(/test)', '"foo":[/posts](/test)')
+    assert_inline_parse('<a class="dtext-link" href="/b">foo</a>(/test)', '"foo":[/b](/test)')
+    #assert_inline_parse('<strong>"foo":</strong>(/test)', '[b]"foo":[/b](/test)')
+    #assert_inline_parse('<strong>"foo":</strong>(/test)[/b]', '[b]"foo":[/b](/test)[/b]')
+
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://foo.com">http://bar.com</a>', '[http://foo.com](http://bar.com)')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://foo.com">/bar</a>', '[http://foo.com](/bar)')
+    assert_inline_parse('<a class="dtext-link" href="/foo">http://bar.com</a>', '[/foo](http://bar.com)')
+    assert_inline_parse('<a class="dtext-link" href="/foo">/bar</a>', '[/foo](/bar)')
+    assert_inline_parse('[/b](<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://bar.com">http://bar.com</a>)', '[/b](http://bar.com)')
+    assert_inline_parse("[/b](/bar)", '[/b](/bar)')
+    assert_inline_parse("<strong>foo</strong>(/bar)", '[b]foo[/b](/bar)')
+    assert_inline_parse("<strong>foo</strong>(bar)", '[b]foo[/b](bar)')
+
     assert_inline_parse(CGI.escapeHTML('[blah](test)'), '[blah](test)')
     assert_inline_parse(CGI.escapeHTML('[](test)'), '[](test)')
   end
@@ -905,14 +978,14 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url="http://example.com"]example[/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url='http://example.com']example[/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url=http://example.com] example [/url]})
-    #assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com"><em>example</em></a></p>', %{[url=http://example.com][i]example[/i][/url]}) # XXX should work
+    assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com"><em>example</em></a></p>', %{[url=http://example.com][i]example[/i][/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com"><em>example</em></a></p>', %{[url=http://example.com] <i>example</i> [/url]})
 
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url = http://example.com ]example[/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url = "http://example.com" ]example[/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url = 'http://example.com' ]example[/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">example</a></p>', %{[url = 'http://example.com' ] example [/url]})
-    #assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com"><em>example</em></a></p>', %{[url = "http://example.com" ] [i]example[/i] [/url]}) # XXX should work
+    assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com"><em>example</em></a></p>', %{[url = "http://example.com" ] [i]example[/i] [/url]})
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com"><em>example</em></a></p>', %{[url = "http://example.com" ] <i>example</i> [/url]})
 
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://danbooru.donmai.us/posts/1234?q=touhou#comment-456">http://danbooru.donmai.us/posts/1234?q=touhou#comment-456</a></p>', '[url]http://danbooru.donmai.us/posts/1234?q=touhou#comment-456[/url]')
@@ -920,9 +993,14 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://danbooru.donmai.us/posts/1234?q=touhou#comment-456">blah</a></p>', '[url="http://danbooru.donmai.us/posts/1234?q=touhou#comment-456"]blah[/url]')
 
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://buzmon.net">Hentai</a>Story</p>', '[URL=http://buzmon.net]Hentai [/URL]Story')
+    assert_parse('<p>foo<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://google.com">foo  bar</a>bar</p>', 'foo[url=http://google.com] foo  bar [/url]bar')
 
     assert_parse('<p>[url]nonurl[/url]</p>', '[url]nonurl[/url]')
     assert_parse('<p>[url=nonurl]blah[/url]</p>', '[url=nonurl]blah[/url]')
+    assert_parse('<p>[url][/url]</p>', '[url][/url]')
+    assert_parse('<p>[url=<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://google.com">http://google.com</a>][/url]</p>', '[url=http://google.com][/url]')
+    assert_parse('<p>[url=<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://google.com">http://google.com</a>] [/url]</p>', '[url=http://google.com] [/url]')
+    assert_parse('<p>[url=<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://google.com">http://google.com</a>]     [/url]</p>', '[url=http://google.com]     [/url]')
   end
 
   def test_fragment_only_urls
@@ -1057,6 +1135,26 @@ class DTextTest < Minitest::Test
 
   def test_new_style_link_boundaries
     assert_parse('<p>a 「<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://test.com">title</a>」 b</p>', 'a 「"title":[http://test.com]」 b')
+  end
+
+  def test_mailto_links
+    assert_inline_parse('user@gmail.com', "user@gmail.com")
+
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user@gmail.com</a>', "mailto:user@gmail.com")
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user@gmail.com</a>', "<mailto:user@gmail.com>")
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user@gmail.com</a>', '[url]mailto:user@gmail.com[/url]')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user</a>', '"user":mailto:user@gmail.com')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user</a>', '"user":[mailto:user@gmail.com]')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user</a>', '[user](mailto:user@gmail.com)')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user</a>', '[mailto:user@gmail.com](user)')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">http://gmail.com</a>', '[mailto:user@gmail.com](http://gmail.com)') # XXX should be regular markdown link, not backwards markdown link
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user</a>', '[url=mailto:user@gmail.com]user[/url]')
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user</a>', '<a href="mailto:user@gmail.com">user</a>')
+
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user@gmail.com</a>.', "mailto:user@gmail.com.")
+    assert_inline_parse('(<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:user@gmail.com">user@gmail.com</a>)', "(mailto:user@gmail.com)")
+
+    assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:foo_bar.baz+qux@test-mail.example.com">foo_bar.baz+qux@test-mail.example.com</a>', "mailto:foo_bar.baz+qux@test-mail.example.com")
   end
 
   def test_lists
@@ -1293,7 +1391,7 @@ class DTextTest < Minitest::Test
     assert_parse("<p>Tags <strong>(<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/howto%3Atag\">Tagging Guidelines</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/howto%3Atag_checklist\">Tag Checklist</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag_groups\">Tag Groups</a>)</strong></p>", "Tags [b]([[howto:tag|Tagging Guidelines]] | [[howto:tag_checklist|Tag Checklist]] | [[Tag Groups]])[/b]")
   end
 
-  def text_note_id_link
+  def test_note_id_link
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-note-id-link" href="/notes/1234">note #1234</a></p>', "note #1234")
   end
 
@@ -1364,6 +1462,10 @@ class DTextTest < Minitest::Test
     assert_parse('<table class="striped"><colgroup></colgroup><td>foo</td></table>', '[table][colgroup span="1"][/colgroup][td]foo[/td][/table]')
 
     assert_parse('<table class="striped"><colgroup><col align="left"><col align="right" span="2"></colgroup><td>one</td><td>two</td><td>three</td></table>', '[table][colgroup][col align="left"][col align="right" span="2"][/colgroup][td]one[/td][td]two[/td][td]three[/td][/table]')
+  
+    assert_parse('<table class="striped"><colgroup><col align="left"><col align="right" span="2"></colgroup><td>one</td><td>two</td><td>three</td></table>', '[table][colgroup][col align="left"][col align="right" span="2"][/colgroup][td]one[/td][td]two[/td][td]three[/td][/table]')
+
+    assert_parse('<table class="striped"><tr><th>foo</th></tr><tr><td>bar</td></tr></table>', "[table][tr][th]foo\n [/th][/tr][tr][td]bar\n [/td][/tr][/table]")
   end
 
   def test_unclosed_tables
@@ -1429,6 +1531,78 @@ class DTextTest < Minitest::Test
     assert_parse(%{<p><a class="dtext-link dtext-id-link dtext-dmail-id-link" href="http://danbooru.donmai.us/dmails/1234?key=abc%3D%3D--DEF123">dmail #1234</a></p>}, "dmail #1234/abc==--DEF123", base_url: "http://danbooru.donmai.us")
   end
 
+  def test_media_embeds
+    assert_parse('<media-embed data-type="post" data-id="1234"></media-embed>', "!post #1234")
+    assert_parse('<media-embed data-type="asset" data-id="1234"></media-embed>', "!asset #1234")
+    assert_parse('<media-embed data-type="post" data-id="1234"></media-embed>', "!post #1234  ")
+
+    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', "!Post #1234")
+    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-media-asset-id-link" href="/media_assets/1234">asset #1234</a></p>', "!Asset #1234")
+
+    assert_parse('<p> !<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', " !post #1234")
+    assert_parse('<p>foo<br> !<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', "foo\n !post #1234")
+
+    assert_parse('<p>!post  #1234</p>', "!post  #1234")
+    assert_parse('<p>!post #abc</p>', "!post #abc")
+    assert_parse('<p>!post #</p>', "!post #")
+
+    assert_parse('<media-embed data-type="post" data-id="1234">blah</media-embed>', "!post #1234: blah")
+    assert_parse('<media-embed data-type="post" data-id="1234">blah</media-embed>', "!post #1234:    blah")
+    assert_parse('<media-embed data-type="post" data-id="1234">blah   </media-embed>', "!post #1234:    blah   ")
+
+    assert_parse('<media-embed data-type="post" data-id="1234">blah</media-embed><h4>See also</h4>', "!post #1234: blah\nh4. See also")
+    assert_parse('<media-embed data-type="post" data-id="1234">blah</media-embed><ul><li>foo</li></ul>', "!post #1234: blah\n* foo")
+    assert_parse('<media-embed data-type="post" data-id="1234">blah</media-embed><p>foo</p>', "!post #1234: blah\n\nfoo")
+
+    assert_parse('<media-embed data-type="post" data-id="1234">h4. See also</media-embed>', "!post #1234: h4. See also")
+    assert_parse('<media-embed data-type="post" data-id="1234">* foo</media-embed>', "!post #1234: * foo")
+    assert_parse('<media-embed data-type="post" data-id="1234">!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/456">post #456</a></media-embed>', "!post #1234: !post #456")
+    assert_parse('<media-embed data-type="post" data-id="1234">* !<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/456">post #456</a></media-embed>', "!post #1234: * !post #456")
+    assert_parse('<media-embed data-type="post" data-id="1234">foo </media-embed><blockquote><p>blah</p></blockquote>', "!post #1234: foo [quote]blah[/quote]")
+
+    assert_parse('<p>foo</p><media-embed data-type="post" data-id="1234">blah</media-embed>', "foo\n!post #1234: blah")
+    assert_parse('<p><em>foo</em></p><media-embed data-type="post" data-id="1234">blah</media-embed>', "[i]foo\n!post #1234: blah")
+    assert_parse('<h4>See also</h4><media-embed data-type="post" data-id="1234">blah</media-embed>', "h4. See also\n!post #1234: blah")
+    assert_parse('<ul><li>foo</li></ul><media-embed data-type="post" data-id="1234">blah</media-embed>', "* foo\n!post #1234: blah")
+    assert_parse('<div class="spoiler"><media-embed data-type="post" data-id="1234">blah</media-embed></div>', "[spoiler]\n!post #1234: blah\n[/spoiler]")
+    assert_parse('<blockquote><media-embed data-type="post" data-id="1234">blah</media-embed></blockquote>', "[quote]\n!post #1234: blah\n[/quote]")
+    assert_parse('<details><summary>Show</summary><div><media-embed data-type="post" data-id="1234">blah</media-embed></div></details>', "[expand]\n!post #1234: blah\n[/expand]")
+
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">foo</a></p><media-embed data-type="post" data-id="1234"></media-embed>', "[[foo]]\n!post #1234")
+    assert_parse('<media-embed data-type="post" data-id="1234"></media-embed><p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">foo</a></p>', "!post #1234\n[[foo]]")
+
+    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a> blah</p>', "!post #1234 blah")
+    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a>:</p>', "!post #1234:")
+    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a>:  </p>', "!post #1234:  ")
+
+    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', "!post #1234", media_embeds: false)
+  end
+
+  def test_media_galleries
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery>', "* !post #1")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1">foo</media-embed></media-gallery>', "* !post #1: foo")
+
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed><media-embed data-type="post" data-id="2"></media-embed></media-gallery>', "* !post #1\n* !post #2")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1">foo</media-embed><media-embed data-type="post" data-id="2">bar</media-embed></media-gallery>', "* !post #1: foo\n* !post #2: bar")
+
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><media-embed data-type="post" data-id="2"></media-embed><media-gallery><media-embed data-type="post" data-id="3"></media-embed></media-gallery>', "* !post #1\n!post #2\n* !post #3")
+    assert_parse('<media-embed data-type="post" data-id="1"></media-embed><media-gallery><media-embed data-type="post" data-id="2"></media-embed></media-gallery><media-embed data-type="post" data-id="3"></media-embed>', "!post #1\n* !post #2\n!post #3")
+    assert_parse('<ul><li>foo</li></ul><media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><ul><li>bar</li></ul>', "* foo\n* !post #1\n* bar")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"><strong>foo</strong></media-embed><media-embed data-type="post" data-id="2"></media-embed></media-gallery>', "* !post #1: [b]foo\n* !post #2")
+
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><p>foo</p>', "* !post #1\n\nfoo")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><media-gallery><media-embed data-type="post" data-id="2"></media-embed></media-gallery>', "* !post #1\n\n* !post #2")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1">foo</media-embed></media-gallery><media-gallery><media-embed data-type="post" data-id="2"></media-embed></media-gallery>', "* !post #1: foo\n\n* !post #2")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><h4>See also</h4>', "* !post #1\nh4. See also")
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><pre>foo</pre>', "* !post #1\n[code]\nfoo\n[/code]")
+    # assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><hr>', "* !post #1\n[hr]") # XXX
+    # assert_parse('<media-gallery><media-embed data-type="post" data-id="1"></media-embed></media-gallery><pre>foo</pre>', "* !post #1\n```\nfoo\n```") # XXX
+
+    assert_parse('<media-gallery><media-embed data-type="post" data-id="1">foo </media-embed></media-gallery><blockquote><p>blah</p></blockquote>', "* !post #1: foo [quote]blah[/quote]")
+    
+    assert_parse('<ul><li>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a> blah</li></ul>', "* !post #1234 blah")
+  end
+
   def test_boundary_exploit
     assert_parse('<p><a class="dtext-link dtext-user-mention-link" data-user-name="mack" href="/users?name=mack">@mack</a>&lt;</p>', "@mack<")
   end
@@ -1439,9 +1613,9 @@ class DTextTest < Minitest::Test
     assert_parse("<details><summary>Show</summary><div><p>hello world</p></div></details>", "<expand>hello world[/expand]")
     assert_parse("<details><summary>Show</summary><div><p>hello world</p></div></details>", "[expand]hello world</expand>")
 
-    assert_parse("<p>inline </p><details><summary>Show</summary><div><p>blah blah</p></div></details>", "inline [expand]blah blah[/expand]")
-    assert_parse("<p>inline <em>foo </em></p><details><summary>Show</summary><div><p>blah blah</p></div></details>", "inline [i]foo [expand]blah blah[/expand]")
-    assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary>Show</summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo [expand]blah blah[/expand]")
+    assert_parse("<p>inline [expand]blah blah[/expand]</p>", "inline [expand]blah blah[/expand]")
+    assert_parse("<p>inline <em>foo [expand]blah blah[/expand]</em></p>", "inline [i]foo [expand]blah blah[/expand]")
+    assert_parse('<p>inline <span class="spoiler">foo [expand]blah blah[/expand]</span></p>', "inline [spoiler]foo [expand]blah blah[/expand]")
 
     assert_parse("<p>inline <em>foo</em></p><details><summary>Show</summary><div><p>blah blah</p></div></details>", "inline [i]foo\n\n[expand]blah blah[/expand]")
     assert_parse('<p>inline <span class="spoiler">foo</span></p><details><summary>Show</summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo\n\n[expand]blah blah[/expand]")
@@ -1459,6 +1633,10 @@ class DTextTest < Minitest::Test
 
     assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><h4>See also</h4>', "[expand]\ntest\n[/expand]\nh4. See also")
     assert_parse('<details><summary>Show</summary><div><p>test</p></div></details><div class="spoiler"><p>blah</p></div>', "[expand]\ntest\n[/expand]\n[spoiler]blah[/spoiler]")
+    
+    assert_parse("<details><summary>Show</summary><div><p>foo</p></div></details>", "[expand]\nfoo\n [/expand]")
+    assert_parse("<details><summary>Show</summary><div><p>foo</p></div></details>", "[expand]\nfoo\n\n [/expand]")
+    assert_parse("<details><summary>Show</summary><div><ul><li>foo</li></ul></div></details>", "[expand]\n* foo\n [/expand]")
   end
 
   def test_aliased_expand
@@ -1480,17 +1658,17 @@ class DTextTest < Minitest::Test
     assert_parse("<p>[expandhello]blah blah[/expand]</p>", "[expandhello]blah blah[/expand]")
     assert_parse("<p>[expand <br>title]blah blah[/expand]</p>", "[expand \ntitle]blah blah[/expand]")
 
-    assert_parse("<p>inline </p><details><summary>hello</summary><div><p>blah</p></div></details>", "inline [expand=hello]blah[/expand]") # XXX trim space after inline
+    assert_parse("<p>inline [expand=hello]blah[/expand]</p>", "inline [expand=hello]blah[/expand]")
 
     assert_parse("<p>inline</p><details><summary>hello</summary><div><p>blah</p></div></details><p>blah</p>", "inline\n[expand=hello]blah[/expand]\nblah")
     assert_parse("<ul><li>list</li></ul><details><summary>hello</summary><div><p>blah</p></div></details>", "* list\n[expand=hello]blah[/expand]")
 
-    assert_parse("<ul><li>list </li></ul><details><summary>hello</summary><div><p>blah</p></div></details>", "* list [expand=hello]blah[/expand]") # XXX wrong, should ignore in lists
-    assert_parse("<h1>foo </h1><details><summary>hello</summary><div><p>blah</p></div></details>", "h1. foo [expand=hello]blah[/expand]") # XXX wrong, should ignore in headers
+    assert_parse("<ul><li>list [expand=hello]blah[/expand]</li></ul>", "* list [expand=hello]blah[/expand]")
+    assert_parse("<h1>foo [expand=hello]blah[/expand]</h1>", "h1. foo [expand=hello]blah[/expand]")
     assert_parse("<h1>foo</h1><details><summary>hello</summary><div><p>blah</p></div></details>", "h1. foo\n[expand=hello]blah[/expand]")
 
-    assert_parse("<p>inline <em>foo </em></p><details><summary>title</summary><div><p>blah blah</p></div></details>", "inline [i]foo [expand=title]blah blah[/expand]")
-    assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary>title</summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo [expand=title]blah blah[/expand]")
+    assert_parse("<p>inline <em>foo [expand=title]blah blah[/expand]</em></p>", "inline [i]foo [expand=title]blah blah[/expand]")
+    assert_parse('<p>inline <span class="spoiler">foo [expand=title]blah blah[/expand]</span></p>', "inline [spoiler]foo [expand=title]blah blah[/expand]")
   end
 
   def test_expand_with_nested_code
@@ -1552,6 +1730,8 @@ class DTextTest < Minitest::Test
 
     assert_parse('<p>inline <span class="spoiler"></span></p><hr><p>[/spoiler]</p>', "inline [spoiler]\n[hr]\n[/spoiler]")
 
+    assert_parse('<p>foo <strong>bar</strong></p><hr>', "foo [b]bar\n[hr]")
+
     #assert_parse('<p class="tn"><hr></p>', "[tn][hr][/tn]") # XXX shouldn't work
   end
 
@@ -1567,6 +1747,29 @@ class DTextTest < Minitest::Test
     assert_parse("<h4>foo&lt;br&gt;bar</h4>", "h4. foo<br>bar")
     assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">bar&lt;br&gt;baz</a></p>', "[[foo|bar<br>baz]]")
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">foo&lt;br&gt;bar</a></p>', '"foo<br>bar":http://example.com')
+    
+    assert_parse("<p>foo <br></p><p>bar</p>", "foo [br]\n\nbar")
+    assert_parse("<p>foo<br><br><br></p><p>bar</p>", "foo\n[br][br]\n\nbar")
+    assert_parse("<p>foo</p><p><br></p><p>bar</p>", "foo\n\n[br]\n\nbar")
+    assert_parse("<p>foo</p><p><br><br></p><p>bar</p>", "foo\n\n[br][br]\n\nbar")
+  end
+
+  def test_emoji
+    emojis = %w[smile]
+
+    assert_parse('<p>foo :smile:</p>', "foo :smile:", emojis: [])
+    assert_parse('<p>:smile:</p>', ":smile:", emojis: [])
+
+    assert_parse('<p>foo <emoji data-name="smile" data-mode="inline"></emoji></p>', "foo :smile:", emojis:)
+    assert_parse('<emoji data-name="smile" data-mode="block"></emoji>', ":smile:", emojis:)
+
+    assert_parse('<p>foo<br><emoji data-name="smile" data-mode="inline"></emoji></p>', "foo\n:smile:", emojis:)
+    assert_parse('<emoji data-name="smile" data-mode="block"></emoji><p>foo</p>', " :smile: \nfoo", emojis:)
+
+    assert_parse('<emoji data-name="smile" data-mode="block"></emoji>', ":Smile:", emojis:)
+    assert_parse('<p>(<emoji data-name="smile" data-mode="inline"></emoji>)</p>', "(:smile:)", emojis:)
+    assert_parse('<p>&quot;<emoji data-name="smile" data-mode="inline"></emoji>&quot;</p>', '":smile:"', emojis:)
+    assert_parse('<p><emoji data-name="smile" data-mode="inline"></emoji>:smile:</p>', ":smile::smile:", emojis:)
   end
 
   def test_inline_mode
