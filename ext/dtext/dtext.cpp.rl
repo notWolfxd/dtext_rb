@@ -168,7 +168,7 @@ delimited_mention = '<@' (nonspace nonnewline*) >mark_a1 @mark_a2 :>> '>';
 bracket_tags = (
   'spoiler'i | 'spoilers'i | 'nodtext'i | 'quote'i | 'expand'i | 'code'i |
   'table'i | 'colgroup'i | 'col'i | 'thead'i | 'tbody'i | 'tr'i | 'th'i | 'td'i |
-  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i
+  'br'i | 'hr'i | 'url'i | 'tn'i | 'b'i | 'i'i | 's'i | 'u'i | 'center'i 
 );
 
 http = 'http'i 's'i? '://';
@@ -279,6 +279,7 @@ open_td = '[td'i tag_attributes :>> ']' | '<td'i tag_attributes :>> '>';
 open_br = '[br]'i | '<br>'i;
 
 open_tn = '[tn]'i | '<tn>'i;
+open_center = '[center]'i | '<center>'i;
 open_b = '[b]'i | '<b>'i | '<strong>'i;
 open_i = '[i]'i | '<i>'i | '<em>'i;
 open_s = '[s]'i | '<s>'i;
@@ -297,6 +298,7 @@ close_tr = '[/tr]'i | '</tr>'i;
 close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
 close_tn = '[/tn]'i | '</tn>'i;
+close_center = '[/center]'i | '</center>'i;
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
@@ -323,11 +325,14 @@ inline := |*
   'pool #'i id             => { append_id_link("pool", "pool", "/pools/", { a1, a2 }); };
   'user #'i id             => { append_id_link("user", "user", "/users/", { a1, a2 }); };
   'artist #'i id           => { append_id_link("artist", "artist", "/artists/", { a1, a2 }); };
-  'tag alias #'i id            => { append_id_link("tag alias", "tag-alias", "/tag_aliases/", { a1, a2 }); };
-  'tag implication #'i id      => { append_id_link("tag implication", "tag-implication", "/tag_implications/", { a1, a2 }); };
-  'tag translation #'i id      => { append_id_link("tag implication", "tag-implication", "/tag_implications/", { a1, a2 }); };
-  'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions?action_id=", { a1, a2 }); };
-  'feedback #'i id         => { append_id_link("feedback", "user-feedback", "/user_records?id=", { a1, a2 }); };
+  'user report #'i id           => { append_id_link("user report", "user-report", "/user_flags/", { a1, a2 }); };
+  'tag alias #'i id            => { append_id_link("tag alias", "tag-alias", "https://beta.sankakucomplex.com/tag_aliases?id[0]=", { a1, a2 }); };
+  'tag implication #'i id      => { append_id_link("tag implication", "tag-implication", "https://beta.sankakucomplex.com/tag_implications?id[0]=", { a1, a2 }); };
+  'tag translation #'i id      => { append_id_link("tag translation", "tag-translation", "https://beta.sankakucomplex.com/tag_translations?id[0]=", { a1, a2 }); };
+  'book #'i id      => { append_id_link("book", "book", "https://beta.sankakucomplex.com/books/", { a1, a2 }); };
+  'series #'i id      => { append_id_link("series", "series", "https://beta.sankakucomplex.com/series/", { a1, a2 }); };
+  'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions?id=", { a1, a2 }); };
+  'record #'i id         => { append_id_link("record", "user-record", "/user_records?id=", { a1, a2 }); };
   'wiki #'i id             => { append_id_link("wiki", "wiki-page", "/wiki/", { a1, a2 }); };
 
   'twitter #'i id          => { append_id_link("twitter", "twitter", "https://twitter.com/i/web/status/", { a1, a2 }); };
@@ -413,6 +418,20 @@ inline := |*
     if (dstack_check(INLINE_TN)) {
       dstack_close_element(INLINE_TN, { ts, te });
     } else if (dstack_close_element(BLOCK_TN, { ts, te })) {
+      fret;
+    }
+  };
+
+  open_center => {
+    dstack_open_element(INLINE_CENTER, "<div class=\"center\">");
+  };
+
+  newline* close_center newline? => {
+    g_debug("inline [/tn]");
+
+    if (dstack_check(INLINE_CENTER)) {
+      dstack_close_element(INLINE_CENTER, { ts, te });
+    } else if (dstack_close_element(BLOCK_CENTER, { ts, te })) {
       fret;
     }
   };
@@ -712,8 +731,14 @@ main := |*
 
   ws* open_table => {
     dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_TABLE, "<table class=\"striped\">");
+    dstack_open_element(BLOCK_TABLE, "<table class=\"highlightable\">");
     fcall table;
+  };
+
+  ws* open_center => {
+    dstack_close_leaf_blocks();
+    dstack_open_element(BLOCK_CENTER, "<p class=\"center\">");
+    fcall inline;
   };
 
   open_tn => {
@@ -1332,12 +1357,14 @@ void StateMachine::dstack_rewind() {
     case INLINE_U: append("</u>"); break;
     case INLINE_S: append("</s>"); break;
     case INLINE_TN: append("</span>"); break;
+    case INLINE_CENTER: append("</div>"); break;
     case INLINE_CODE: append("</code>"); break;
     case INLINE_EMOJI: append("</emoji>"); break;
 
     case BLOCK_MEDIA_EMBED: append_block("</media-embed>"); break;
     case BLOCK_MEDIA_GALLERY: append_block("</media-gallery>"); break;
     case BLOCK_TN: append_block("</p>"); break;
+    case BLOCK_CENTER: append_block("</p>"); break;
     case BLOCK_TABLE: append_block("</table>"); break;
     case BLOCK_COLGROUP: append_block("</colgroup>"); break;
     case BLOCK_THEAD: append_block("</thead>"); break;
@@ -1358,12 +1385,12 @@ void StateMachine::dstack_rewind() {
   }
 }
 
-// container blocks: [spoiler], [quote], [expand], [tn], media galleries (`* !post #1`)
+// container blocks: [spoiler], [quote], [expand], [center], [tn], media galleries (`* !post #1`)
 // leaf blocks: [nodtext], [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 void StateMachine::dstack_close_leaf_blocks() {
   g_debug("dstack close leaf blocks");
 
-  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_TN) && !dstack_check(BLOCK_MEDIA_GALLERY)) {
+  while (!dstack.empty() && !dstack_check(BLOCK_QUOTE) && !dstack_check(BLOCK_SPOILER) && !dstack_check(BLOCK_CENTER) && !dstack_check(BLOCK_EXPAND) && !dstack_check(BLOCK_TN) && !dstack_check(BLOCK_MEDIA_GALLERY)) {
     dstack_rewind();
   }
 }
