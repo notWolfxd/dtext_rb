@@ -489,7 +489,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | media_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | open_color | aliased_color | hr | header | header_with_id | media_embed) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -503,6 +503,11 @@ inline := |*
   (newline ws*)? open_quote >mark_a1 => {
     dstack_close_leaf_blocks();
     fexec a1;
+    fret;
+  };
+
+  (newline ws*)? close_color ws* => {
+    dstack_close_until(BLOCK_COLOR);
     fret;
   };
 
@@ -710,7 +715,7 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  open_color => {
+  open_color space* => {
     g_debug("inline [color]");
     dstack_open_element(INLINE_COLOR, "<p style=\"color:#FF761C;\">");
     fcall inline;
@@ -718,18 +723,19 @@ main := |*
 
   aliased_color => {
     g_debug("block [color=]");
+    dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
     append_html_escaped({ a1, a2 });
-    append("\">");
+    append(";\">");
   };
 
-  newline* close_color => {
+  space* close_color ws* => {
     g_debug("inline [/color]");
 
     if (dstack_check(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
-      fret;
+    } else {
+      dstack_close_until(BLOCK_COLOR)
     }
   };
 
