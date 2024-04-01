@@ -8646,7 +8646,7 @@ _eof_trans:
 	case 64:
 #line 390 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
-    append_mention({ a1, a2 });
+    append_mention({ a1, a2 + 1 });
   }}
 	break;
 	case 65:
@@ -9074,14 +9074,14 @@ _eof_trans:
 	case 135:
 #line 390 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
-    append_mention({ a1, a2 });
+    append_mention({ a1, a2 + 1 });
   }}
 	break;
 	case 136:
 #line 401 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
-    dstack_open_list(e2 - e1);
-    {( p) = (( f1))-1;}
+    g_debug("inline list");
+    {( p) = (( ts + 1))-1;}
     {( cs) = ( (stack.data()))[--( top)]; goto _again;}
   }}
 	break;
@@ -9443,7 +9443,7 @@ _eof_trans:
 	break;
 	case 41:
 	{{( p) = ((( te)))-1;}
-    append_mention({ a1, a2 });
+    append_mention({ a1, a2 + 1 });
   }
 	break;
 	case 57:
@@ -10090,8 +10090,8 @@ _eof_trans:
 #line 821 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("block list");
-    dstack_open_list(a2 - a1);
-    {( p) = (( b1))-1;}
+    dstack_open_list(e2 - e1);
+    {( p) = (( f1))-1;}
     {
   size_t len = stack.size();
 

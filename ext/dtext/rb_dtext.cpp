@@ -61,7 +61,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE base_url, VALUE domain, VALU
     std::string domain = StringValueCStr(rb_domain); // raise ArgumentError if the domain contains null bytes.
     options.internal_domains.insert(domain);
   }
-  
+
   Check_Type(emojis, T_ARRAY); // raises TypeError if the argument isn't an array.
 
   for (int i = 0; i < RARRAY_LEN(emojis); i++) {

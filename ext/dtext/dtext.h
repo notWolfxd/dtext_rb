@@ -119,7 +119,7 @@ struct DTextOptions {
 
   // Links to these domains are converted to shortlinks (used so links to https://danbooru.donmai.us/posts/1234 are converted to post #1234).
   std::unordered_set<std::string> internal_domains;
-  
+
   // The list of emojis recognized in this piece of DText.
   std::unordered_set<std::string_view> emojis;
 };

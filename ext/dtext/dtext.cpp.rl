@@ -388,7 +388,7 @@ inline := |*
   };
 
   (bare_mention | delimited_mention) when mentions_enabled => {
-    append_mention({ a1, a2 });
+    append_mention({ a1, a2 + 1 });
   };
 
   emoji => {
@@ -399,8 +399,8 @@ inline := |*
   };
 
   newline list_item => {
-    dstack_open_list(e2 - e1);
-    fexec f1;
+    g_debug("inline list");
+    fexec ts + 1;
     fret;
   };
 
@@ -820,8 +820,8 @@ main := |*
 
   list_item => {
     g_debug("block list");
-    dstack_open_list(a2 - a1);
-    fexec b1;
+    dstack_open_list(e2 - e1);
+    fexec f1;
     fcall inline;
   };
 
