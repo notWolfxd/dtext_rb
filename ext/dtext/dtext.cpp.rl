@@ -489,7 +489,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | open_color | aliased_color | hr | header | header_with_id | media_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | media_embed) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -710,21 +710,17 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-
   open_color => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
-    fcall inline;
+    g_debug("inline [color]");
+    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
   };
 
   aliased_color => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
-    append_block_html_escaped({ a1, a2 });
-    append_block("\">");
-    fcall inline;
+    g_debug("inline [color=]");
+    dstack_open_element(INLINE_COLOR, "<span style=\"color:");
+    append_html_escaped({ a1, a2 });
+    append("\">");
   };
-
 
   newline* close_color => {
     g_debug("inline [/color]");
