@@ -10,6 +10,7 @@ namespace DText {
 class URL {
  public:
   const std::string_view url;
+  std::string_view scheme;
   std::string_view domain;
   std::string_view path;
   std::string_view query;
