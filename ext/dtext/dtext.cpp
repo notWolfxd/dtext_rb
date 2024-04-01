@@ -9008,7 +9008,7 @@ _eof_trans:
 	break;
 	case 107:
 #line 328 "ext/dtext/dtext.cpp.rl"
-	{( te) = ( p);( p)--;{ append_id_link("topic", "forum-topic", "/forums/", { a1, a2 }); }}
+	{( te) = ( p);( p)--;{ append_id_link("topic", "forum-post", "/forums/", { a1, a2 }); }}
 	break;
 	case 108:
 #line 329 "ext/dtext/dtext.cpp.rl"
@@ -9281,7 +9281,7 @@ _eof_trans:
 	break;
 	case 146:
 #line 328 "ext/dtext/dtext.cpp.rl"
-	{{( p) = ((( te)))-1;}{ append_id_link("topic", "forum-topic", "/forums/", { a1, a2 }); }}
+	{{( p) = ((( te)))-1;}{ append_id_link("topic", "forum-post", "/forums/", { a1, a2 }); }}
 	break;
 	case 147:
 #line 330 "ext/dtext/dtext.cpp.rl"
@@ -9416,7 +9416,7 @@ _eof_trans:
 	{{( p) = ((( te)))-1;} append_id_link("forum", "forum-post", "/forums/", { a1, a2 }); }
 	break;
 	case 13:
-	{{( p) = ((( te)))-1;} append_id_link("topic", "forum-topic", "/forums/", { a1, a2 }); }
+	{{( p) = ((( te)))-1;} append_id_link("topic", "forum-post", "/forums/", { a1, a2 }); }
 	break;
 	case 14:
 	{{( p) = ((( te)))-1;} append_id_link("comment", "comment", "/comments/", { a1, a2 }); }
