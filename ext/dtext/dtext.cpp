@@ -46,7 +46,7 @@ static const std::unordered_map<std::string_view, std::function<bool(std::string
 static unsigned char ascii_tolower(unsigned char c);
 
 
-#line 842 "ext/dtext/dtext.cpp.rl"
+#line 843 "ext/dtext/dtext.cpp.rl"
 
 
 
@@ -7566,7 +7566,7 @@ static const int dtext_en_table = 2381;
 static const int dtext_en_main = 1906;
 
 
-#line 845 "ext/dtext/dtext.cpp.rl"
+#line 846 "ext/dtext/dtext.cpp.rl"
 
 void StateMachine::dstack_push(element_t element) {
   dstack.push_back(element);
@@ -8309,7 +8309,7 @@ std::string StateMachine::parse() {
 	( act) = 0;
 	}
 
-#line 1579 "ext/dtext/dtext.cpp.rl"
+#line 1580 "ext/dtext/dtext.cpp.rl"
   
 #line 8302 "ext/dtext/dtext.cpp"
 	{
@@ -9759,15 +9759,15 @@ _eof_trans:
 	{{( p) = ((( te)))-1;}}
 	break;
 	case 184:
-#line 821 "ext/dtext/dtext.cpp.rl"
+#line 822 "ext/dtext/dtext.cpp.rl"
 	{( act) = 132;}
 	break;
 	case 185:
-#line 822 "ext/dtext/dtext.cpp.rl"
+#line 823 "ext/dtext/dtext.cpp.rl"
 	{( act) = 133;}
 	break;
 	case 186:
-#line 830 "ext/dtext/dtext.cpp.rl"
+#line 831 "ext/dtext/dtext.cpp.rl"
 	{( act) = 134;}
 	break;
 	case 187:
@@ -9816,7 +9816,7 @@ _eof_trans:
   }}
 	break;
 	case 190:
-#line 724 "ext/dtext/dtext.cpp.rl"
+#line 725 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     g_debug("block [color=]");
     dstack_close_leaf_blocks();
@@ -9826,7 +9826,7 @@ _eof_trans:
   }}
 	break;
 	case 191:
-#line 761 "ext/dtext/dtext.cpp.rl"
+#line 762 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -9846,7 +9846,7 @@ _eof_trans:
   }}
 	break;
 	case 192:
-#line 767 "ext/dtext/dtext.cpp.rl"
+#line 768 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TABLE, "<table class=\"highlightable\">");
@@ -9866,7 +9866,7 @@ _eof_trans:
   }}
 	break;
 	case 193:
-#line 773 "ext/dtext/dtext.cpp.rl"
+#line 774 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_CENTER, "<p class=\"center\">");
@@ -9886,7 +9886,7 @@ _eof_trans:
   }}
 	break;
 	case 194:
-#line 779 "ext/dtext/dtext.cpp.rl"
+#line 780 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_TN, "<p class=\"tn\">");
@@ -9906,7 +9906,7 @@ _eof_trans:
   }}
 	break;
 	case 195:
-#line 785 "ext/dtext/dtext.cpp.rl"
+#line 786 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     const std::string_view caption = { c1, c2 };
     const std::string_view prefix = { d1, d2 };
@@ -9935,7 +9935,7 @@ _eof_trans:
   }}
 	break;
 	case 196:
-#line 830 "ext/dtext/dtext.cpp.rl"
+#line 831 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p)+1;{
     g_debug("block char");
     ( p)--;
@@ -10046,6 +10046,7 @@ _eof_trans:
 #line 718 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("inline [color]");
+    dstack_close_leaf_blocks();
     dstack_open_element(INLINE_COLOR, "<p style=\"color:#FF761C;\">");
     {
   size_t len = stack.size();
@@ -10063,19 +10064,19 @@ _eof_trans:
   }}
 	break;
 	case 205:
-#line 732 "ext/dtext/dtext.cpp.rl"
+#line 733 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("inline [/color]");
 
     if (dstack_check(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else {
-      dstack_close_until(BLOCK_COLOR);
+    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
+      {( cs) = ( (stack.data()))[--( top)]; goto _again;}
     }
   }}
 	break;
 	case 206:
-#line 742 "ext/dtext/dtext.cpp.rl"
+#line 743 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_EXPAND, "<details>");
@@ -10083,7 +10084,7 @@ _eof_trans:
   }}
 	break;
 	case 207:
-#line 748 "ext/dtext/dtext.cpp.rl"
+#line 749 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("block [expand=]");
     dstack_close_leaf_blocks();
@@ -10094,13 +10095,13 @@ _eof_trans:
   }}
 	break;
 	case 208:
-#line 757 "ext/dtext/dtext.cpp.rl"
+#line 758 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_until(BLOCK_EXPAND);
   }}
 	break;
 	case 209:
-#line 761 "ext/dtext/dtext.cpp.rl"
+#line 762 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -10120,7 +10121,7 @@ _eof_trans:
   }}
 	break;
 	case 210:
-#line 800 "ext/dtext/dtext.cpp.rl"
+#line 801 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
 
@@ -10144,14 +10145,14 @@ _eof_trans:
   }}
 	break;
 	case 211:
-#line 810 "ext/dtext/dtext.cpp.rl"
+#line 811 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_close_leaf_blocks();
     append_block("<hr>");
   }}
 	break;
 	case 212:
-#line 815 "ext/dtext/dtext.cpp.rl"
+#line 816 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     dstack_open_list(e2 - e1);
     {( p) = (( f1))-1;}
@@ -10171,7 +10172,7 @@ _eof_trans:
   }}
 	break;
 	case 213:
-#line 830 "ext/dtext/dtext.cpp.rl"
+#line 831 "ext/dtext/dtext.cpp.rl"
 	{( te) = ( p);( p)--;{
     g_debug("block char");
     ( p)--;
@@ -10234,7 +10235,7 @@ _eof_trans:
   }}
 	break;
 	case 216:
-#line 761 "ext/dtext/dtext.cpp.rl"
+#line 762 "ext/dtext/dtext.cpp.rl"
 	{{( p) = ((( te)))-1;}{
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_NODTEXT, "<p>");
@@ -10254,7 +10255,7 @@ _eof_trans:
   }}
 	break;
 	case 217:
-#line 830 "ext/dtext/dtext.cpp.rl"
+#line 831 "ext/dtext/dtext.cpp.rl"
 	{{( p) = ((( te)))-1;}{
     g_debug("block char");
     ( p)--;
@@ -10320,7 +10321,7 @@ _eof_trans:
 	}
 	}
 	break;
-#line 10082 "ext/dtext/dtext.cpp"
+#line 10083 "ext/dtext/dtext.cpp"
 		}
 	}
 
@@ -10333,7 +10334,7 @@ _again:
 #line 1 "NONE"
 	{( ts) = 0;}
 	break;
-#line 10093 "ext/dtext/dtext.cpp"
+#line 10094 "ext/dtext/dtext.cpp"
 		}
 	}
 
@@ -10353,7 +10354,7 @@ _again:
 	_out: {}
 	}
 
-#line 1580 "ext/dtext/dtext.cpp.rl"
+#line 1581 "ext/dtext/dtext.cpp.rl"
 
   g_debug("EOF; closing stray blocks");
   dstack_close_all();

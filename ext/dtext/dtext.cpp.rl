@@ -717,6 +717,7 @@ main := |*
 
   open_color space* => {
     g_debug("inline [color]");
+    dstack_close_leaf_blocks();
     dstack_open_element(INLINE_COLOR, "<p style=\"color:#FF761C;\">");
     fcall inline;
   };
@@ -734,8 +735,8 @@ main := |*
 
     if (dstack_check(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else {
-      dstack_close_until(BLOCK_COLOR);
+    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
+      fret;
     }
   };
 
