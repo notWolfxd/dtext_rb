@@ -729,7 +729,7 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  aliased_color => {
+  aliased_color space* => {
     g_debug("block [color=]");
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
@@ -753,6 +753,10 @@ main := |*
   };
 
   space* close_expand ws* => {
+    dstack_close_until(BLOCK_EXPAND);
+  };
+  
+  space* close_color ws* => {
     dstack_close_until(BLOCK_EXPAND);
   };
 
