@@ -43,16 +43,15 @@ class DTextTest < Minitest::Test
     assert_equal("@" + expected_username, actual_username)
   end
 
-  def assert_wiki_pages(expected, dtext)
-    assert_equal(expected.sort, DText.c_parse_wiki_pages(dtext).sort)
+  def assert_wiki(expected, dtext)
+    assert_equal(expected.sort, DText.c_parse_wiki(dtext).sort)
   end
 
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki_pages/touhou">touhou</a></p>', "[[touhou]]", base_url: "http://danbooru.donmai.us")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki_pages/touhou">Touhou</a></p>', "[[touhou|Touhou]]", base_url: "http://danbooru.donmai.us")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki/touhou">touhou</a></p>', "[[touhou]]", base_url: "http://danbooru.donmai.us")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="http://danbooru.donmai.us/wiki/touhou">Touhou</a></p>', "[[touhou|Touhou]]", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link dtext-post-search-link" href="http://danbooru.donmai.us/posts?tags=touhou">touhou</a></p>', "{{touhou}}", base_url: "http://danbooru.donmai.us")
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="http://danbooru.donmai.us/forum_topics/1234?page=4">topic #1234/p4</a></p>', "topic #1234/p4", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">home</a></p>', '"home":/posts', base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us#posts">home</a></p>', '"home":#posts', base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">home</a></p>', '<a href="/posts">home</a>', base_url: "http://danbooru.donmai.us")
@@ -253,7 +252,7 @@ class DTextTest < Minitest::Test
     assert_parse("<p>* list</p>", "&ast; list")
 
     assert_inline_parse('<a class="dtext-link" href="/posts">&amp;quot;title&amp;quot;</a>', '"&quot;title&quot;":/posts')
-    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki_pages/tiger_%26amp%3B_bunny">tiger_&amp;amp;_bunny</a>', '[[tiger_&amp;_bunny]]')
+    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki/tiger_%26amp%3B_bunny">tiger_&amp;amp;_bunny</a>', '[[tiger_&amp;_bunny]]')
 
     assert_inline_parse('&amp;lt;', '[nodtext]&lt;[/nodtext]')
     assert_parse('<pre>&amp;lt;</pre>', '[code]&lt;[/code]')
@@ -261,40 +260,40 @@ class DTextTest < Minitest::Test
   end
 
   def test_wiki_links
-    assert_parse("<p>a <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/b\">b</a> c</p>", "a [[b]] c")
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/%E6%9D%B1%E6%96%B9\">東方</a></p>", "[[東方]]")
+    assert_parse("<p>a <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/b\">b</a> c</p>", "a [[b]] c")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/%E6%9D%B1%E6%96%B9\">東方</a></p>", "[[東方]]")
   end
 
   def test_wiki_link_spacing
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag\">tag</a></p>", "[[ tag ]]")
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag\">thetagger</a></p>", "the[[ tag ]]ger")
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag\">theTagger</a></p>", "the[[ tag|Tag ]]ger")
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag\">theTagger</a></p>", "the[[ tag | Tag ]]ger")
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag#dtext-see-also\">thetagger</a></p>", "the[[ tag #See Also ]]ger")
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag#dtext-see-also\">theTagger</a></p>", "the[[ tag #See Also | Tag ]]ger")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag\">tag</a></p>", "[[ tag ]]")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag\">thetagger</a></p>", "the[[ tag ]]ger")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag\">theTagger</a></p>", "the[[ tag|Tag ]]ger")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag\">theTagger</a></p>", "the[[ tag | Tag ]]ger")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag#dtext-see-also\">thetagger</a></p>", "the[[ tag #See Also ]]ger")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag#dtext-see-also\">theTagger</a></p>", "the[[ tag #See Also | Tag ]]ger")
   end
 
   def test_wiki_links_spoiler
-    assert_parse("<p>a <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/spoiler\">spoiler</a> c</p>", "a [[spoiler]] c")
+    assert_parse("<p>a <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/spoiler\">spoiler</a> c</p>", "a [[spoiler]] c")
   end
 
   def test_wiki_links_edge
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7C3">|3</a></p>', '[[|3]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7Cd">|D</a></p>', '[[|D]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%3A%7C">:|</a></p>', '[[:|]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7C_%7C">|_|</a></p>', '[[|_|]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7C%7C_%7C%7C">||_||</a></p>', '[[||_||]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%5C%7C%7C%2F">\||/</a></p>', '[[\||/]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%3C%7C%3E_%3C%7C%3E">&lt;|&gt;_&lt;|&gt;</a></p>', '[[<|>_<|>]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7C3">|3</a></p>', '[[|3]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7Cd">|D</a></p>', '[[|D]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%3A%7C">:|</a></p>', '[[:|]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7C_%7C">|_|</a></p>', '[[|_|]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7C%7C_%7C%7C">||_||</a></p>', '[[||_||]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%5C%7C%7C%2F">\||/</a></p>', '[[\||/]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%3C%7C%3E_%3C%7C%3E">&lt;|&gt;_&lt;|&gt;</a></p>', '[[<|>_<|>]]')
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7C3">blah</a></p>', '[[|3|blah]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7Cd">blah</a></p>', '[[|D|blah]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7C_%7C">blah</a></p>', '[[|_||blah]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%7C%7C_%7C%7C">blah</a></p>', '[[||_|||blah]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7C3">blah</a></p>', '[[|3|blah]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7Cd">blah</a></p>', '[[|D|blah]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7C_%7C">blah</a></p>', '[[|_||blah]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%7C%7C_%7C%7C">blah</a></p>', '[[||_|||blah]]')
 
-    #assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%3A%7C">blah</a></p>', '[[:||blah]]') # XXX should work
-    #assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%5C%7C%7C%2F">blah</a></p>', '[[\||/|blah]]') # XXX should work
-    #assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%3C%7C%3E_%3C%7C%3E">blah</a></p>', '[[<|>_<|>|blah]]') # XXX should work
+    #assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%3A%7C">blah</a></p>', '[[:||blah]]') # XXX should work
+    #assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%5C%7C%7C%2F">blah</a></p>', '[[\||/|blah]]') # XXX should work
+    #assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%3C%7C%3E_%3C%7C%3E">blah</a></p>', '[[<|>_<|>|blah]]') # XXX should work
   end
 
   def test_wiki_links_nested_b
@@ -302,63 +301,63 @@ class DTextTest < Minitest::Test
   end
 
   def test_wiki_links_suffixes
-    assert_parse('<p>I like <a class="dtext-link dtext-wiki-link" href="/wiki_pages/cat">cats</a>.</p>', "I like [[cat]]s.")
-    assert_parse('<p>a <a class="dtext-link dtext-wiki-link" href="/wiki_pages/cat">cat</a>\'s paw</p>', "a [[cat]]'s paw")
-    assert_parse('<p>the <a class="dtext-link dtext-wiki-link" href="/wiki_pages/60s">1960s</a>.</p>', "the 19[[60s]].")
-    assert_parse('<p>a <a class="dtext-link dtext-wiki-link" href="/wiki_pages/c">bcd</a> e</p>', "a b[[c]]d e")
+    assert_parse('<p>I like <a class="dtext-link dtext-wiki-link" href="/wiki/cat">cats</a>.</p>', "I like [[cat]]s.")
+    assert_parse('<p>a <a class="dtext-link dtext-wiki-link" href="/wiki/cat">cat</a>\'s paw</p>', "a [[cat]]'s paw")
+    assert_parse('<p>the <a class="dtext-link dtext-wiki-link" href="/wiki/60s">1960s</a>.</p>', "the 19[[60s]].")
+    assert_parse('<p>a <a class="dtext-link dtext-wiki-link" href="/wiki/c">bcd</a> e</p>', "a b[[c]]d e")
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/b">acd</a></p>', "a[[b|c]]d")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/b">acd</a></p>', "a[[b|c]]d")
   end
 
   def test_wiki_links_pipe_trick
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tagme">tagme</a></p>', "[[tagme|]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tagme">TAGME</a></p>', "[[TAGME|]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tagme">tagme</a></p>', "[[tagme| ]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tagme">tagme</a></p>', "[[tagme |]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tagme">tagme</a></p>', "[[tagme | ]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo_%28bar%29">foo</a></p>', "[[foo (bar)|]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo_%28bar%29">foo</a></p>', "[[foo (bar) | ]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo_%28bar%29">abcfoo123</a></p>', "abc[[foo (bar)|]]123")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo_%28bar%29">abcfoo123</a></p>', "abc[[foo (bar) | ]]123")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tagme">tagme</a></p>', "[[tagme|]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tagme">TAGME</a></p>', "[[TAGME|]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tagme">tagme</a></p>', "[[tagme| ]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tagme">tagme</a></p>', "[[tagme |]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tagme">tagme</a></p>', "[[tagme | ]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/foo_%28bar%29">foo</a></p>', "[[foo (bar)|]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/foo_%28bar%29">foo</a></p>', "[[foo (bar) | ]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/foo_%28bar%29">abcfoo123</a></p>', "abc[[foo (bar)|]]123")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/foo_%28bar%29">abcfoo123</a></p>', "abc[[foo (bar) | ]]123")
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/kaga_%28kantai_collection%29">kaga</a></p>', "[[kaga_(kantai_collection)|]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/kaga_%28kantai_collection%29">Kaga</a></p>', "[[Kaga (Kantai Collection)|]]")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/kaga_%28kantai_collection%29_%28cosplay%29">kaga (kantai collection)</a></p>', "[[kaga (kantai collection) (cosplay)|]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/kaga_%28kantai_collection%29">kaga</a></p>', "[[kaga_(kantai_collection)|]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/kaga_%28kantai_collection%29">Kaga</a></p>', "[[Kaga (Kantai Collection)|]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/kaga_%28kantai_collection%29_%28cosplay%29">kaga (kantai collection)</a></p>', "[[kaga (kantai collection) (cosplay)|]]")
 
     assert_parse('<p>[[long hair|<br>long]]</p>', "[[long hair|\nlong]]")
     assert_parse('<p>[[|long hair]]</p>', "[[|long hair]]")
   end
 
   def test_wiki_links_anchor
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/touhou#dtext-see-also">touhou</a></p>', '[[touhou#See also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/touhou#dtext-see-also">touhou</a></p>', '[[touhou#See-Also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/touhou#dtext-see-also">touhou</a></p>', '[[touhou#See_Also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/touhou#dtext-see-also">touhou</a></p>', '[[touhou#See also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/touhou#dtext-see-also">touhou</a></p>', '[[touhou#See-Also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/touhou#dtext-see-also">touhou</a></p>', '[[touhou#See_Also]]')
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/cd#dtext-ef">abghij</a></p>', 'ab[[cd#Ef|gh]]ij')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/cd#dtext-ef">abghij</a></p>', 'ab[[cd#Ef|gh]]ij')
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass">#compass</a></p>', '[[#compass]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass">#Compass</a></p>', '[[#Compass]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass">Compass</a></p>', '[[#compass|Compass]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass">Compass</a></p>', '[[#Compass|Compass]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass#dtext-see-also">#compass</a></p>', '[[#compass#See also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass#dtext-see-also">#Compass</a></p>', '[[#Compass#See also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass#dtext-see-also">Compass</a></p>', '[[#compass#See also|Compass]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%23compass#dtext-see-also">Compass</a></p>', '[[#Compass#See also|Compass]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass">#compass</a></p>', '[[#compass]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass">#Compass</a></p>', '[[#Compass]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass">Compass</a></p>', '[[#compass|Compass]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass">Compass</a></p>', '[[#Compass|Compass]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass#dtext-see-also">#compass</a></p>', '[[#compass#See also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass#dtext-see-also">#Compass</a></p>', '[[#Compass#See also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass#dtext-see-also">Compass</a></p>', '[[#compass#See also|Compass]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/%23compass#dtext-see-also">Compass</a></p>', '[[#Compass#See also|Compass]]')
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/evo_moment_%2337">evo_moment_#37</a></p>', '[[evo_moment_#37]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/evo_moment_%2337">Evo Moment #37</a></p>', '[[Evo Moment #37]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/evo_moment_%2337#dtext-see-also">Evo Moment #37</a></p>', '[[Evo Moment #37#See also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/evo_moment_%2337#dtext-see-also">Evo</a></p>', '[[Evo Moment #37#See also|Evo]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/evo_moment_%2337">evo_moment_#37</a></p>', '[[evo_moment_#37]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/evo_moment_%2337">Evo Moment #37</a></p>', '[[Evo Moment #37]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/evo_moment_%2337#dtext-see-also">Evo Moment #37</a></p>', '[[Evo Moment #37#See also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/evo_moment_%2337#dtext-see-also">Evo</a></p>', '[[Evo Moment #37#See also|Evo]]')
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/htol%23niq%3A_hotaru_no_nikki">htol#niq:_hotaru_no_nikki</a></p>', '[[htol#niq:_hotaru_no_nikki]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/htol%23niq%3A_hotaru_no_nikki">Htol#niq: Hotaru no Nikki</a></p>', '[[Htol#niq: Hotaru no Nikki]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/htol%23niq%3A_hotaru_no_nikki#dtext-see-also">Htol#niq: Hotaru no Nikki</a></p>', '[[Htol#niq: Hotaru no Nikki#See also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/htol%23niq%3A_hotaru_no_nikki#dtext-see-also">Hotaru no Nikki</a></p>', '[[Htol#niq: Hotaru no Nikki#See also|Hotaru no Nikki]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/htol%23niq%3A_hotaru_no_nikki">htol#niq:_hotaru_no_nikki</a></p>', '[[htol#niq:_hotaru_no_nikki]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/htol%23niq%3A_hotaru_no_nikki">Htol#niq: Hotaru no Nikki</a></p>', '[[Htol#niq: Hotaru no Nikki]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/htol%23niq%3A_hotaru_no_nikki#dtext-see-also">Htol#niq: Hotaru no Nikki</a></p>', '[[Htol#niq: Hotaru no Nikki#See also]]')
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/htol%23niq%3A_hotaru_no_nikki#dtext-see-also">Hotaru no Nikki</a></p>', '[[Htol#niq: Hotaru no Nikki#See also|Hotaru no Nikki]]')
 
     assert_parse('<p>[[touhou#See Also:]]</p>', '[[touhou#See Also:]]')
     assert_parse('<p>[[Htol#Niq: Hotaru no Nikki#See also]]</p>', '[[Htol#Niq: Hotaru no Nikki#See also]]')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tokyo_mirage_sessions#dtext-fe">Tokyo Mirage Sessions</a></p>', '[[Tokyo Mirage Sessions #FE]]') # XXX wrong
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/http%3A%2F%2Fen.wikipedia.org%2Fwiki%2Fgolden_age_of_detective_fiction#dtext-description-of-the-genre">Knox Decalogue</a></p>', '[[http://en.wikipedia.org/wiki/Golden_Age_of_Detective_Fiction#Description_of_the_genre| Knox Decalogue]]') # XXX wrong
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tokyo_mirage_sessions#dtext-fe">Tokyo Mirage Sessions</a></p>', '[[Tokyo Mirage Sessions #FE]]') # XXX wrong
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/http%3A%2F%2Fen.wikipedia.org%2Fwiki%2Fgolden_age_of_detective_fiction#dtext-description-of-the-genre">Knox Decalogue</a></p>', '[[http://en.wikipedia.org/wiki/Golden_Age_of_Detective_Fiction#Description_of_the_genre| Knox Decalogue]]') # XXX wrong
   end
 
   def test_spoilers
@@ -484,6 +483,46 @@ class DTextTest < Minitest::Test
     assert_inline_parse("", "[hr]")
   end
 
+  def test_inline_center
+    assert_parse('<p>foo <div class="center">bar</div> baz</p>', "foo [center]bar[/center] baz")
+    assert_parse('<p>foo <div class="center">bar</div> baz</p>', "foo <center>bar</center> baz")
+
+    assert_parse('<p>foo bar[/center] baz</p>', "foo bar[/center] baz")
+    assert_parse('<p>foo bar&lt;/center&gt; baz</p>', "foo bar</center> baz")
+    assert_parse('<ul><li>foo [/center] bar</li></ul>', "* foo [/center] bar")
+    assert_parse('<h4>foo [/center] bar</h4>', "h4. foo [/center] bar")
+    assert_parse('<blockquote><p>foo [/center] bar</p></blockquote>', "[quote]\nfoo [/center] bar\n[/quote]")
+  end
+
+  def test_block_center
+    assert_parse('<p class="center">bar</p>', "[center]bar[/center]")
+    assert_parse('<p class="center">bar</p>', "<center>bar</center>")
+
+    assert_parse('<p>foo <strong>bar</strong></p><p class="center">bar</p>', "foo [b]bar\n\n[center]bar[/center]")
+    assert_parse('<p>foo <strong>bar<br><div class="center"><br>bar</div></strong></p>', "foo [b]bar\n[center]\nbar\n[/center]") # XXX should be treated as a block tag?
+  end
+
+  def test_inline_color
+    assert_parse('<p>foo <span style="color:#FF761C;">bar</span> baz</p>', "foo [color]bar[/color] baz")
+    assert_parse('<p>foo <span style="color:#FF761C;">bar</span> baz</p>', "foo <color>bar</color> baz")
+
+    assert_parse('<p>foo bar[/color] baz</p>', "foo bar[/color] baz")
+    assert_parse('<p>foo bar&lt;/color&gt; baz</p>', "foo bar</color> baz")
+    assert_parse('<ul><li>foo [/color] bar</li></ul>', "* foo [/color] bar")
+    assert_parse('<h4>foo [/color] bar</h4>', "h4. foo [/color] bar")
+    assert_parse('<blockquote><p>foo [/color] bar</p></blockquote>', "[quote]\nfoo [/color] bar\n[/quote]")
+  end
+
+  def test_block_color
+    assert_parse('<p style="color:#FF761C;">bar</p>', "[color]bar[/color]")
+    assert_parse('<p style="color:#FF761C;">bar</p>', "<color>bar</color>")
+    assert_parse('<p style="color:#AAA;">bar</p>', "<color=#AAA>bar</color>")
+
+    assert_parse('<p>foo <strong>bar</strong></p><p style="color:#FF761C;">bar</p>', "foo [b]bar\n\n[color]bar[/color]")
+    assert_parse('<p>foo <strong>bar</strong></p><p style="color:#AAA;">bar</p>', "foo [b]bar\n\n[color=#AAA]bar[/color]")
+    assert_parse('<p>foo <strong>bar<br><span style="color:#FF761C;"><br>bar</span></strong></p>', "foo [b]bar\n[color]\nbar\n[/color]") # XXX should be treated as a block tag?
+  end
+
   def test_inline_tn
     assert_parse('<p>foo <span class="tn">bar</span> baz</p>', "foo [tn]bar[/tn] baz")
     assert_parse('<p>foo <span class="tn">bar</span> baz</p>', "foo <tn>bar</tn> baz")
@@ -553,7 +592,7 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><pre>foo[/quote]</pre></blockquote>', "[quote][code]foo[/quote]")
     assert_parse('<blockquote><details><summary>Show</summary><div><p>foo</p></div></details></blockquote>', "[quote][expand]foo[/quote]")
     assert_parse('<blockquote><p>foo[/quote]</p></blockquote>', "[quote][nodtext]foo[/quote]")
-    assert_parse('<blockquote><table class="striped"><td>foo</td></table></blockquote>', "[quote][table][td]foo[/quote]")
+    assert_parse('<blockquote><table class="highlightable"><td>foo</td></table></blockquote>', "[quote][table][td]foo[/quote]")
     assert_parse('<blockquote><ul><li>foo</li></ul></blockquote>', "[quote]* foo[/quote]")
     assert_parse('<blockquote><h1>foo</h1></blockquote>', "[quote]h1. foo[/quote]")
   end
@@ -811,19 +850,18 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234">topic #1234</a></p>', 'https://danbooru.donmai.us/forum_topics/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-user-id-link" href="/users/1234">user #1234</a></p>', 'https://danbooru.donmai.us/users/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-artist-id-link" href="/artists/1234">artist #1234</a></p>', 'https://danbooru.donmai.us/artists/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-note-id-link" href="/notes/1234">note #1234</a></p>', 'https://danbooru.donmai.us/notes/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-favorite-group-id-link" href="/favorite_groups/1234">favgroup #1234</a></p>', 'https://danbooru.donmai.us/favorite_groups/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-wiki-page-id-link" href="/wiki_pages/1234">wiki #1234</a></p>', 'https://danbooru.donmai.us/wiki_pages/1234', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-wiki-page-id-link" href="/wiki/1234">wiki #1234</a></p>', 'https://danbooru.donmai.us/wiki/1234', internal_domains: %w[danbooru.donmai.us])
 
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/posts/1234#comment_5678">https://danbooru.donmai.us/posts/1234#comment_5678</a></p>', 'https://danbooru.donmai.us/posts/1234#comment_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/pools/1234?page=2">https://danbooru.donmai.us/pools/1234?page=2</a></p>', 'https://danbooru.donmai.us/pools/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/favorite_groups/1234?page=2">https://danbooru.donmai.us/favorite_groups/1234?page=2</a></p>', 'https://danbooru.donmai.us/favorite_groups/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forum_topics/1234?page=2">https://danbooru.donmai.us/forum_topics/1234?page=2</a></p>', 'https://danbooru.donmai.us/forum_topics/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forum_topics/1234#forum_post_5678">https://danbooru.donmai.us/forum_topics/1234#forum_post_5678</a></p>', 'https://danbooru.donmai.us/forum_topics/1234#forum_post_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki_pages/1234#dtext-see-also">https://danbooru.donmai.us/wiki_pages/1234#dtext-see-also</a></p>', 'https://danbooru.donmai.us/wiki_pages/1234#dtext-see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki_pages/touhou#dtext-see-also">https://danbooru.donmai.us/wiki_pages/touhou#dtext-see-also</a></p>', 'https://danbooru.donmai.us/wiki_pages/touhou#dtext-see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki/1234#dtext-see-also">https://danbooru.donmai.us/wiki/1234#dtext-see-also</a></p>', 'https://danbooru.donmai.us/wiki/1234#dtext-see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki/touhou#dtext-see-also">https://danbooru.donmai.us/wiki/touhou#dtext-see-also</a></p>', 'https://danbooru.donmai.us/wiki/touhou#dtext-see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/touhou">touhou</a></p>', 'https://danbooru.donmai.us/wiki_pages/touhou', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/touhou">touhou</a></p>', 'https://danbooru.donmai.us/wiki/touhou', internal_domains: %w[danbooru.donmai.us])
   end
 
   def test_old_style_links
@@ -926,7 +964,7 @@ class DTextTest < Minitest::Test
     assert_inline_parse('[url](<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://example.com">http://example.com</a>)[/url]', "[url](http://example.com)[/url]")
     assert_inline_parse('[url](<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://example.com">http://example.com</a>)', "[url](http://example.com)")
     assert_inline_parse('<strong>foo</strong>(<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://example.com">http://example.com</a>)', "[b]foo[/b](http://example.com)")
-    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">foo</a>(<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://example.com">http://example.com</a>)', "[[foo]](http://example.com)")
+    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki/foo">foo</a>(<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://example.com">http://example.com</a>)', "[[foo]](http://example.com)")
 
     assert_inline_parse('<a class="dtext-link" href="/posts/1">test</a>', "[test](/posts/1)")
     assert_inline_parse('<a class="dtext-link" href="#foo">test</a>', "[test](#foo)")
@@ -936,7 +974,7 @@ class DTextTest < Minitest::Test
     assert_inline_parse("<strong>(/posts)</strong>", "[b](/posts)[/b]")
     assert_inline_parse("<strong>(/posts)</strong>", "[b](/posts)")
     assert_inline_parse("<strong>foo</strong>(/posts)", "[b]foo[/b](/posts)")
-    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">foo</a>(/posts)', "[[foo]](/posts)")
+    assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki/foo">foo</a>(/posts)', "[[foo]](/posts)")
 
     assert_inline_parse('[test](/posts/1 2)', "[test](/posts/1 2)")
     assert_inline_parse('[test](#foo bar)', "[test](#foo bar)")
@@ -1287,9 +1325,9 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link dtext-post-search-link" href="/posts?tags=-%7CD">-|D</a></p>', '{{-|D}}')
     assert_parse('<p><a class="dtext-link dtext-post-search-link" href="/posts?tags=~%7CD">~|D</a></p>', '{{~|D}}')
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tag#dtext-see-also">tag</a> <a class="dtext-link dtext-post-search-link" href="/posts?tags=tag">tag</a></p>', "[[tag#See also]] {{tag}}")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/tag#dtext-see-also">Tag</a> <a class="dtext-link dtext-post-search-link" href="/posts?tags=tag">tag</a></p>', "[[tag#See also|Tag]] {{tag}}")
-    assert_parse('<p><a class="dtext-link dtext-post-search-link" href="/posts?tags=tag">Tag</a> <a class="dtext-link dtext-wiki-link" href="/wiki_pages/tag">tag</a></p>', "{{tag|Tag}} [[tag]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tag#dtext-see-also">tag</a> <a class="dtext-link dtext-post-search-link" href="/posts?tags=tag">tag</a></p>', "[[tag#See also]] {{tag}}")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/tag#dtext-see-also">Tag</a> <a class="dtext-link dtext-post-search-link" href="/posts?tags=tag">tag</a></p>', "[[tag#See also|Tag]] {{tag}}")
+    assert_parse('<p><a class="dtext-link dtext-post-search-link" href="/posts?tags=tag">Tag</a> <a class="dtext-link dtext-wiki-link" href="/wiki/tag">tag</a></p>', "{{tag|Tag}} [[tag]]")
 
     assert_parse('<p><a class="dtext-link dtext-post-search-link" href="/posts?tags=%3A%7C">:|</a> foo <a class="dtext-link dtext-post-search-link" href="/posts?tags=bar">bar</a></p>', '{{:|}} foo {{bar}}')
 
@@ -1357,7 +1395,7 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><ul><li>foo</li><li>bar</li></ul></blockquote>', "[quote]\n* foo\n* bar\n[/quote]")
     assert_parse('<blockquote><p>[/expand]<br>blah</p></blockquote>', "[quote][/expand]\nblah\n")
 
-    assert_parse('<table class="striped"><tr><td><br>foo</td></tr></table>', "\n[table]\n[tr]\n[td]\nfoo\n[/td]\n[/tr]\n[/table]\n") # XXX wrong
+    assert_parse('<table class="highlightable"><tr><td><br>foo</td></tr></table>', "\n[table]\n[tr]\n[td]\nfoo\n[/td]\n[/tr]\n[/table]\n") # XXX wrong
 
     assert_parse('<p class="tn">foo</p>', "[tn]foo\n[/tn]")
     assert_parse('<p class="tn"><br>foo</p>', "[tn]\nfoo\n[/tn]") # XXX wrong
@@ -1384,140 +1422,110 @@ class DTextTest < Minitest::Test
   end
 
   def test_complex_links_1
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/~1\">2 3</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/~4\">5 6</a></p>", "[[1|2 3]] | [[4|5 6]]")
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/~1\">2 3</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/~4\">5 6</a></p>", "[[1|2 3]] | [[4|5 6]]")
   end
 
   def test_complex_links_2
-    assert_parse("<p>Tags <strong>(<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/howto%3Atag\">Tagging Guidelines</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/howto%3Atag_checklist\">Tag Checklist</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/tag_groups\">Tag Groups</a>)</strong></p>", "Tags [b]([[howto:tag|Tagging Guidelines]] | [[howto:tag_checklist|Tag Checklist]] | [[Tag Groups]])[/b]")
-  end
-
-  def test_note_id_link
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-note-id-link" href="/notes/1234">note #1234</a></p>', "note #1234")
+    assert_parse("<p>Tags <strong>(<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/howto%3Atag\">Tagging Guidelines</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/howto%3Atag_checklist\">Tag Checklist</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki/tag_groups\">Tag Groups</a>)</strong></p>", "Tags [b]([[howto:tag|Tagging Guidelines]] | [[howto:tag_checklist|Tag Checklist]] | [[Tag Groups]])[/b]")
   end
 
   def test_table
-    assert_parse("<table class=\"striped\"><tr><td>text</td></tr></table>", "[table][tr][td]text[/td][/tr][/table]")
+    assert_parse("<table class=\"highlightable\"><tr><td>text</td></tr></table>", "[table][tr][td]text[/td][/tr][/table]")
 
-    assert_parse("<table class=\"striped\"><thead><tr><th>header</th></tr></thead><tbody><tr><td><a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/100\">post #100</a></td></tr></tbody></table>", "[table][thead][tr][th]header[/th][/tr][/thead][tbody][tr][td]post #100[/td][/tr][/tbody][/table]")
-    assert_parse("<table class=\"striped\"><thead><tr><th>header</th></tr></thead><tbody><tr><td><a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/100\">post #100</a></td></tr></tbody></table>", "[table]\n[thead]\n[tr]\n[th]header[/th][/tr][/thead][tbody][tr][td]post #100[/td][/tr][/tbody][/table]")
+    assert_parse("<table class=\"highlightable\"><thead><tr><th>header</th></tr></thead><tbody><tr><td><a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/100\">post #100</a></td></tr></tbody></table>", "[table][thead][tr][th]header[/th][/tr][/thead][tbody][tr][td]post #100[/td][/tr][/tbody][/table]")
+    assert_parse("<table class=\"highlightable\"><thead><tr><th>header</th></tr></thead><tbody><tr><td><a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/100\">post #100</a></td></tr></tbody></table>", "[table]\n[thead]\n[tr]\n[th]header[/th][/tr][/thead][tbody][tr][td]post #100[/td][/tr][/tbody][/table]")
 
-    assert_parse('<p>inline</p><table class="striped"><tr><td>text</td></tr></table>', "inline\n\n[table][tr][td]text[/td][/tr][/table]")
-    assert_parse("<p><em>inline</em></p><table class=\"striped\"><tr><td>text</td></tr></table>", "[i]inline\n\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse('<p>inline</p><table class="highlightable"><tr><td>text</td></tr></table>', "inline\n\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse("<p><em>inline</em></p><table class=\"highlightable\"><tr><td>text</td></tr></table>", "[i]inline\n\n[table][tr][td]text[/td][/tr][/table]")
 
-    assert_parse('<p>inline</p><table class="striped"><tr><td>text</td></tr></table>', "inline\n[table][tr][td]text[/td][/tr][/table]")
-    assert_parse("<p><em>inline</em></p><table class=\"striped\"><tr><td>text</td></tr></table>", "[i]inline\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse('<p>inline</p><table class="highlightable"><tr><td>text</td></tr></table>', "inline\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse("<p><em>inline</em></p><table class=\"highlightable\"><tr><td>text</td></tr></table>", "[i]inline\n[table][tr][td]text[/td][/tr][/table]")
 
     assert_parse('<p>inline[table][tr][td]text[/td][/tr][/table]</p>', "inline[table][tr][td]text[/td][/tr][/table]")
     assert_parse('<p><em>inline[table][tr][td]text[/td][/tr][/table]</em></p>', "[i]inline[table][tr][td]text[/td][/tr][/table]")
 
-    assert_parse('<h4>See also</h4><table class="striped"><tr><td>text</td></tr></table>', "h4. See also\n[table][tr][td]text[/td][/tr][/table]")
-    assert_parse('<ul><li>list</li></ul><table class="striped"><tr><td>text</td></tr></table>', "* list\n[table][tr][td]text[/td][/tr][/table]")
-    assert_parse('<div class="spoiler"><table class="striped"><tr><td>text</td></tr></table></div>', "[spoiler][table][tr][td]text[/td][/tr][/table][/spoiler]")
-    assert_parse('<blockquote><table class="striped"><tr><td>text</td></tr></table></blockquote>', "[quote][table][tr][td]text[/td][/tr][/table][/quote]")
-    assert_parse('<details><summary>Show</summary><div><table class="striped"><tr><td>text</td></tr></table></div></details>', "[expand][table][tr][td]text[/td][/tr][/table][/expand]")
+    assert_parse('<h4>See also</h4><table class="highlightable"><tr><td>text</td></tr></table>', "h4. See also\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse('<ul><li>list</li></ul><table class="highlightable"><tr><td>text</td></tr></table>', "* list\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse('<div class="spoiler"><table class="highlightable"><tr><td>text</td></tr></table></div>', "[spoiler][table][tr][td]text[/td][/tr][/table][/spoiler]")
+    assert_parse('<blockquote><table class="highlightable"><tr><td>text</td></tr></table></blockquote>', "[quote][table][tr][td]text[/td][/tr][/table][/quote]")
+    assert_parse('<details><summary>Show</summary><div><table class="highlightable"><tr><td>text</td></tr></table></div></details>', "[expand][table][tr][td]text[/td][/tr][/table][/expand]")
 
-    assert_parse('<table class="striped"><td colspan="2">foo</td></table>', '[table][td colspan=2]foo[/td][/table]')
-    assert_parse('<table class="striped"><td rowspan="3">foo</td></table>', '[table][td rowspan=3]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td colspan="2">foo</td></table>', '[table][td colspan=2]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td rowspan="3">foo</td></table>', '[table][td rowspan=3]foo[/td][/table]')
 
-    assert_parse('<table class="striped"><td colspan="2">foo</td></table>', '[table][td colspan="2"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td colspan="2">foo</td></table>', "[table][td colspan='2']foo[/td][/table]")
-    assert_parse('<table class="striped"><td colspan="2">foo</td></table>', '[table][td colspan = "2"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td colspan="3">foo</td></table>', '[table][td colspan=2 colspan=3]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td colspan="2">foo</td></table>', '[table][td colspan="2"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td colspan="2">foo</td></table>', "[table][td colspan='2']foo[/td][/table]")
+    assert_parse('<table class="highlightable"><td colspan="2">foo</td></table>', '[table][td colspan = "2"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td colspan="3">foo</td></table>', '[table][td colspan=2 colspan=3]foo[/td][/table]')
 
-    assert_parse('<table class="striped"><td colspan="2" rowspan="3">foo</td></table>', '[table][td colspan=2 rowspan=3]foo[/td][/table]')
-    assert_parse('<table class="striped"><td colspan="2" rowspan="3">foo</td></table>', '[table][td rowspan=3 colspan=2]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td colspan="2" rowspan="3">foo</td></table>', '[table][td colspan=2 rowspan=3]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td colspan="2" rowspan="3">foo</td></table>', '[table][td rowspan=3 colspan=2]foo[/td][/table]')
 
-    assert_parse('<table class="striped"></table>', '[table][td colspan=2rowspan=3]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][td colspan="2"rowspan="3"]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][tdcolspan]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][td colspan]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][td colspan=""]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', "[table][td colspan='']foo[/td][/table]")
-    assert_parse('<table class="striped"></table>', '[table][td colspan=]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][td =2]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][td _colspan=2]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', "[table][td\ncolspan=2]foo[/td][/table]")
-    assert_parse('<table class="striped"></table>', '[table][td colspan=2 ]foo[/td][/table]')
-    assert_parse('<table class="striped"></table>', '[table][td ]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td colspan=2rowspan=3]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td colspan="2"rowspan="3"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][tdcolspan]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td colspan]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td colspan=""]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', "[table][td colspan='']foo[/td][/table]")
+    assert_parse('<table class="highlightable"></table>', '[table][td colspan=]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td =2]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td _colspan=2]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', "[table][td\ncolspan=2]foo[/td][/table]")
+    assert_parse('<table class="highlightable"></table>', '[table][td colspan=2 ]foo[/td][/table]')
+    assert_parse('<table class="highlightable"></table>', '[table][td ]foo[/td][/table]')
 
-    assert_parse('<table class="striped"><td>foo</td></table>', '[table][td colspan="blah"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td>foo</td></table>', '[table][td colspan=blah]foo[/td][/table]')
-    assert_parse('<table class="striped"><td>foo</td></table>', '[table][td id="blah"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td>foo</td></table>', '[table][td class="blah"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td>foo</td></table>', '[table][td style="blah"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td>foo</td></table>', '[table][td onclick="blah"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>', '[table][td colspan="blah"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>', '[table][td colspan=blah]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>', '[table][td id="blah"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>', '[table][td class="blah"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>', '[table][td style="blah"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>', '[table][td onclick="blah"]foo[/td][/table]')
 
-    assert_parse('<table class="striped"><td align="left">foo</td></table>',    '[table][td align="left"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td align="center">foo</td></table>',  '[table][td align="center"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td align="right">foo</td></table>',   '[table][td align="right"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td align="justify">foo</td></table>', '[table][td align="justify"]foo[/td][/table]')
-    assert_parse('<table class="striped"><td>foo</td></table>',                 '[table][td align="blah"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td align="left">foo</td></table>',    '[table][td align="left"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td align="center">foo</td></table>',  '[table][td align="center"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td align="right">foo</td></table>',   '[table][td align="right"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td align="justify">foo</td></table>', '[table][td align="justify"]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><td>foo</td></table>',                 '[table][td align="blah"]foo[/td][/table]')
 
-    assert_parse('<table class="striped"><th align="left">foo</th></table>', '[table][th align="left"]foo[/th][/table]')
-    assert_parse('<table class="striped"><tr align="left"><td>foo</td></tr></table>', '[table][tr align="left"][td]foo[/td][/tr][/table]')
-    assert_parse('<table class="striped"><tbody align="left"><td>foo</td></tbody></table>', '[table][tbody align="left"][td]foo[/td][/tbody][/table]')
-    assert_parse('<table class="striped"><thead align="left"><td>foo</td></thead></table>', '[table][thead align="left"][td]foo[/td][/thead][/table]')
+    assert_parse('<table class="highlightable"><th align="left">foo</th></table>', '[table][th align="left"]foo[/th][/table]')
+    assert_parse('<table class="highlightable"><tr align="left"><td>foo</td></tr></table>', '[table][tr align="left"][td]foo[/td][/tr][/table]')
+    assert_parse('<table class="highlightable"><tbody align="left"><td>foo</td></tbody></table>', '[table][tbody align="left"][td]foo[/td][/tbody][/table]')
+    assert_parse('<table class="highlightable"><thead align="left"><td>foo</td></thead></table>', '[table][thead align="left"][td]foo[/td][/thead][/table]')
 
-    assert_parse('<table class="striped"><colgroup></colgroup><td>foo</td></table>', '[table][colgroup align="left"][/colgroup][td]foo[/td][/table]')
-    assert_parse('<table class="striped"><colgroup></colgroup><td>foo</td></table>', '[table][colgroup span="1"][/colgroup][td]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><colgroup></colgroup><td>foo</td></table>', '[table][colgroup align="left"][/colgroup][td]foo[/td][/table]')
+    assert_parse('<table class="highlightable"><colgroup></colgroup><td>foo</td></table>', '[table][colgroup span="1"][/colgroup][td]foo[/td][/table]')
 
-    assert_parse('<table class="striped"><colgroup><col align="left"><col align="right" span="2"></colgroup><td>one</td><td>two</td><td>three</td></table>', '[table][colgroup][col align="left"][col align="right" span="2"][/colgroup][td]one[/td][td]two[/td][td]three[/td][/table]')
+    assert_parse('<table class="highlightable"><colgroup><col align="left"><col align="right" span="2"></colgroup><td>one</td><td>two</td><td>three</td></table>', '[table][colgroup][col align="left"][col align="right" span="2"][/colgroup][td]one[/td][td]two[/td][td]three[/td][/table]')
   
-    assert_parse('<table class="striped"><colgroup><col align="left"><col align="right" span="2"></colgroup><td>one</td><td>two</td><td>three</td></table>', '[table][colgroup][col align="left"][col align="right" span="2"][/colgroup][td]one[/td][td]two[/td][td]three[/td][/table]')
+    assert_parse('<table class="highlightable"><colgroup><col align="left"><col align="right" span="2"></colgroup><td>one</td><td>two</td><td>three</td></table>', '[table][colgroup][col align="left"][col align="right" span="2"][/colgroup][td]one[/td][td]two[/td][td]three[/td][/table]')
 
-    assert_parse('<table class="striped"><tr><th>foo</th></tr><tr><td>bar</td></tr></table>', "[table][tr][th]foo\n [/th][/tr][tr][td]bar\n [/td][/tr][/table]")
+    assert_parse('<table class="highlightable"><tr><th>foo</th></tr><tr><td>bar</td></tr></table>', "[table][tr][th]foo\n [/th][/tr][tr][td]bar\n [/td][/tr][/table]")
   end
 
   def test_unclosed_tables
-    assert_parse('<table class="striped"><th>foo</th></table>', "[table][th]foo")
-    assert_parse('<table class="striped"><td>foo</td></table>', "[table][td]foo")
-    assert_parse('<table class="striped"><tr><td>foo</td></tr></table>', "[table][tr][td]foo")
-    assert_parse('<table class="striped"><thead><td>foo</td></thead></table>', "[table][thead][td]foo") # XXX wrong
-    assert_parse('<table class="striped"><tbody><td>foo</td></tbody></table>', "[table][tbody][td]foo") # XXX wrong
-    assert_parse('<table class="striped"><colgroup><td>foo</td></colgroup></table>', "[table][colgroup][td]foo") # XXX wrong
-    assert_parse('<table class="striped"><colgroup><col><td>foo</td></colgroup></table>', "[table][colgroup][col][td]foo") # XXX wrong
-  end
-
-  def test_forum_links
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234?page=4">topic #1234/p4</a></p>', "topic #1234/p4")
+    assert_parse('<table class="highlightable"><th>foo</th></table>', "[table][th]foo")
+    assert_parse('<table class="highlightable"><td>foo</td></table>', "[table][td]foo")
+    assert_parse('<table class="highlightable"><tr><td>foo</td></tr></table>', "[table][tr][td]foo")
+    assert_parse('<table class="highlightable"><thead><td>foo</td></thead></table>', "[table][thead][td]foo") # XXX wrong
+    assert_parse('<table class="highlightable"><tbody><td>foo</td></tbody></table>', "[table][tbody][td]foo") # XXX wrong
+    assert_parse('<table class="highlightable"><colgroup><td>foo</td></colgroup></table>', "[table][colgroup][td]foo") # XXX wrong
+    assert_parse('<table class="highlightable"><colgroup><col><td>foo</td></colgroup></table>', "[table][colgroup][col][td]foo") # XXX wrong
   end
 
   def test_id_links
     assert_parse_id_link("dtext-post-id-link", "/posts/1234", "post #1234")
-    assert_parse_id_link("dtext-post-appeal-id-link", "/post_appeals/1234", "appeal #1234")
-    assert_parse_id_link("dtext-post-flag-id-link", "/post_flags/1234", "flag #1234")
-    assert_parse_id_link("dtext-note-id-link", "/notes/1234", "note #1234")
-    assert_parse_id_link("dtext-forum-post-id-link", "/forum_posts/1234", "forum #1234")
-    assert_parse_id_link("dtext-forum-topic-id-link", "/forum_topics/1234", "topic #1234")
+    assert_parse_id_link("dtext-forum-post-id-link", "/forums/1234", "forum #1234")
     assert_parse_id_link("dtext-comment-id-link", "/comments/1234", "comment #1234")
     assert_parse_id_link("dtext-pool-id-link", "/pools/1234", "pool #1234")
     assert_parse_id_link("dtext-user-id-link", "/users/1234", "user #1234")
     assert_parse_id_link("dtext-artist-id-link", "/artists/1234", "artist #1234")
-    assert_parse_id_link("dtext-ban-id-link", "/bans/1234", "ban #1234")
-    assert_parse_id_link("dtext-tag-alias-id-link", "/tag_aliases/1234", "alias #1234")
-    assert_parse_id_link("dtext-tag-implication-id-link", "/tag_implications/1234", "implication #1234")
-    assert_parse_id_link("dtext-favorite-group-id-link", "/favorite_groups/1234", "favgroup #1234")
+    assert_parse_id_link("dtext-tag-alias-id-link", "/tag_aliases/1234", "tag alias #1234")
+    assert_parse_id_link("dtext-tag-implication-id-link", "/tag_implications/1234", "tag implication #1234")
     assert_parse_id_link("dtext-mod-action-id-link", "/mod_actions/1234", "mod action #1234")
-    assert_parse_id_link("dtext-user-feedback-id-link", "/user_feedbacks/1234", "feedback #1234")
-    assert_parse_id_link("dtext-wiki-page-id-link", "/wiki_pages/1234", "wiki #1234")
-    assert_parse_id_link("dtext-moderation-report-id-link", "/moderation_reports/1234", "modreport #1234")
+    assert_parse_id_link("dtext-wiki-page-id-link", "/wiki/1234", "wiki #1234")
     assert_parse_id_link("dtext-dmail-id-link", "/dmails/1234", "dmail #1234")
 
-    assert_parse_id_link("dtext-github-id-link", "https://github.com/danbooru/danbooru/issues/1234", "issue #1234")
-    assert_parse_id_link("dtext-github-pull-id-link", "https://github.com/danbooru/danbooru/pull/1234", "pull #1234")
-    assert_parse_id_link("dtext-github-commit-id-link", "https://github.com/danbooru/danbooru/commit/1234", "commit #1234")
-    assert_parse_id_link("dtext-artstation-id-link", "https://www.artstation.com/artwork/A1", "artstation #A1")
-    assert_parse_id_link("dtext-deviantart-id-link", "https://www.deviantart.com/deviation/1234", "deviantart #1234")
-    assert_parse_id_link("dtext-nijie-id-link", "https://nijie.info/view.php?id=1234", "nijie #1234")
-    assert_parse_id_link("dtext-pawoo-id-link", "https://pawoo.net/web/statuses/1234", "pawoo #1234")
-    assert_parse_id_link("dtext-pixiv-id-link", "https://www.pixiv.net/artworks/1234", "pixiv #1234")
-    assert_parse_id_link("dtext-pixiv-id-link", "https://www.pixiv.net/artworks/1234#2", "pixiv #1234/p2")
-    assert_parse_id_link("dtext-seiga-id-link", "https://seiga.nicovideo.jp/seiga/im1234", "seiga #1234")
     assert_parse_id_link("dtext-twitter-id-link", "https://twitter.com/i/web/status/1234", "twitter #1234")
-
-    assert_parse_id_link("dtext-yandere-id-link", "https://yande.re/post/show/1234", "yandere #1234")
-    assert_parse_id_link("dtext-sankaku-id-link", "https://chan.sankakucomplex.com/post/show/1234", "sankaku #1234")
-    assert_parse_id_link("dtext-gelbooru-id-link", "https://gelbooru.com/index.php?page=post&amp;s=view&amp;id=1234", "gelbooru #1234")
 
     assert_parse('<p>(R-18指定注意)→<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/2053744">post #2053744</a></p>', '(R-18指定注意)→post #2053744')
 
@@ -1533,7 +1541,6 @@ class DTextTest < Minitest::Test
 
   def test_media_embeds
     assert_parse('<media-embed data-type="post" data-id="1234"></media-embed>', "!post #1234")
-    assert_parse('<media-embed data-type="asset" data-id="1234"></media-embed>', "!asset #1234")
     assert_parse('<media-embed data-type="post" data-id="1234"></media-embed>', "!post #1234  ")
 
     assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', "!Post #1234")
@@ -1568,8 +1575,8 @@ class DTextTest < Minitest::Test
     assert_parse('<blockquote><media-embed data-type="post" data-id="1234">blah</media-embed></blockquote>', "[quote]\n!post #1234: blah\n[/quote]")
     assert_parse('<details><summary>Show</summary><div><media-embed data-type="post" data-id="1234">blah</media-embed></div></details>', "[expand]\n!post #1234: blah\n[/expand]")
 
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">foo</a></p><media-embed data-type="post" data-id="1234"></media-embed>', "[[foo]]\n!post #1234")
-    assert_parse('<media-embed data-type="post" data-id="1234"></media-embed><p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">foo</a></p>', "!post #1234\n[[foo]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/foo">foo</a></p><media-embed data-type="post" data-id="1234"></media-embed>', "[[foo]]\n!post #1234")
+    assert_parse('<media-embed data-type="post" data-id="1234"></media-embed><p><a class="dtext-link dtext-wiki-link" href="/wiki/foo">foo</a></p>', "!post #1234\n[[foo]]")
 
     assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a> blah</p>', "!post #1234 blah")
     assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a>:</p>', "!post #1234:")
@@ -1712,7 +1719,7 @@ class DTextTest < Minitest::Test
     assert_parse("<details><summary>Show</summary><div><hr></div></details>", "[expand]\n[hr]\n[/expand]")
     assert_parse("<pre>[hr]</pre>", "[code]\n[hr]\n[/code]")
     assert_parse("<p>[hr]</p>", "[nodtext]\n[hr]\n[/nodtext]")
-    assert_parse('<table class="striped"></table>', "[table]\n[hr]\n[/table]")
+    assert_parse('<table class="highlightable"></table>', "[table]\n[hr]\n[/table]")
 
     assert_parse("<h1>foo</h1><hr>", "h1. foo\n[hr]")
     assert_parse("<ul><li>foo</li></ul><hr>", "* foo\n[hr]")
@@ -1742,10 +1749,10 @@ class DTextTest < Minitest::Test
     assert_parse("<p>foo<br>bar</p>", "foo<BR>bar")
 
     assert_parse("<ul><li>foo<br>bar</li></ul>", "* foo<br>bar")
-    assert_parse('<table class="striped"><tr><td>foo<br>bar</td></tr></table>', "[table][tr][td]foo[br]bar[/td][/tr][/table]")
+    assert_parse('<table class="highlightable"><tr><td>foo<br>bar</td></tr></table>', "[table][tr][td]foo[br]bar[/td][/tr][/table]")
 
     assert_parse("<h4>foo&lt;br&gt;bar</h4>", "h4. foo<br>bar")
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/foo">bar&lt;br&gt;baz</a></p>', "[[foo|bar<br>baz]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/foo">bar&lt;br&gt;baz</a></p>', "[[foo|bar<br>baz]]")
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="http://example.com">foo&lt;br&gt;bar</a></p>', '"foo<br>bar":http://example.com')
     
     assert_parse("<p>foo <br></p><p>bar</p>", "foo [br]\n\nbar")
@@ -1810,8 +1817,8 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link" href="/posts?tags=approver:葉月">7893</a></p>', '"7893":/posts?tags=approver:葉月')
     assert_parse('<p><a class="dtext-link" href="/posts?tags=approver:葉月">7893</a></p>', '"7893":[/posts?tags=approver:葉月]')
     assert_parse('<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link" href="http://danbooru.donmai.us/posts?tags=approver:葉月">http://danbooru.donmai.us/posts?tags=approver:葉月</a></p>', 'http://danbooru.donmai.us/posts?tags=approver:葉月')
-    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/full_metal_panic%21_%CE%A3">Full Metal Panic! Σ</a></p>', '[[Full Metal Panic! Σ]]')
-    assert_parse(%{<p><a class="dtext-link dtext-wiki-link" href="/wiki_pages/%C2%97">\u0097</a></p>}, "[[\u0097]]")
+    assert_parse('<p><a class="dtext-link dtext-wiki-link" href="/wiki/full_metal_panic%21_%CE%A3">Full Metal Panic! Σ</a></p>', '[[Full Metal Panic! Σ]]')
+    assert_parse(%{<p><a class="dtext-link dtext-wiki-link" href="/wiki/%C2%97">\u0097</a></p>}, "[[\u0097]]")
     assert_parse(%{<p><a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="https://www.example.com/\u0097">\u0097</a></p>}, %{"\u0097":https://www.example.com/\u0097})
   end
 
@@ -1907,16 +1914,16 @@ class DTextTest < Minitest::Test
     # assert_parse('<div class="spoiler"><blockquote><p>foo</p></blockquote></div>', '[spoiler]\n[quote]\nfoo\n[/spoiler][/quote]')
   end
 
-  def test_parse_wiki_pages
-    assert_wiki_pages(%w[], "")
-    assert_wiki_pages(%w[kantai_collection], "[[kantai_collection]]")
-    assert_wiki_pages(%w[Kantai\ Collection], "[[Kantai Collection]]")
-    assert_wiki_pages(%w[Kantai\ Collection], "[[Kantai Collection|Kancolle]]")
-    assert_wiki_pages(%w[cat], "[[cat]]s")
-    assert_wiki_pages(%w[60s], "19[[60s]]")
-    assert_wiki_pages(%w[cat], "[[cat]] [[cat]]")
-    assert_wiki_pages(%w[cat dog], "[[cat]] [[dog]]")
-    assert_wiki_pages(%w[], "[nodtext][[cat]][/nodtext]")
+  def test_parse_wiki
+    assert_wiki(%w[], "")
+    assert_wiki(%w[kantai_collection], "[[kantai_collection]]")
+    assert_wiki(%w[Kantai\ Collection], "[[Kantai Collection]]")
+    assert_wiki(%w[Kantai\ Collection], "[[Kantai Collection|Kancolle]]")
+    assert_wiki(%w[cat], "[[cat]]s")
+    assert_wiki(%w[60s], "19[[60s]]")
+    assert_wiki(%w[cat], "[[cat]] [[cat]]")
+    assert_wiki(%w[cat dog], "[[cat]] [[dog]]")
+    assert_wiki(%w[], "[nodtext][[cat]][/nodtext]")
 
     touhou_tags = [
       "100th Black Market", "Alternative Facts in Eastern Utopia", "Antinomy of Common Flowers", "Bohemian Archive in Japanese Red",
@@ -1936,7 +1943,7 @@ class DTextTest < Minitest::Test
       "gameplay mechanics", "grimoire_of_marisa", "grimoire_of_usami", "lotus eaters", "parody"
     ]
 
-    assert_wiki_pages(touhou_tags, File.read("test/files/touhou-wiki.txt"))
+    assert_wiki(touhou_tags, File.read("test/files/touhou-wiki.txt"))
   end
 
   def test_null_bytes

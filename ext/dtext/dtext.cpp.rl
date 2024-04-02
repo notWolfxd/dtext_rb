@@ -91,7 +91,6 @@ action media_embeds_enabled { options.f_media_embeds }
 action in_quote { dstack_is_open(BLOCK_QUOTE) }
 action in_expand { dstack_is_open(BLOCK_EXPAND) }
 action in_spoiler { dstack_is_open(BLOCK_SPOILER) }
-action in_color { dstack_is_open(BLOCK_COLOR) }
 action save_tag_attribute { tag_attributes[{ a1, a2 }] = { b1, b2 }; }
 
 # Matches the beginning or the end of the string. The input string has null bytes prepended and appended to mark the ends of the string.
@@ -303,7 +302,7 @@ close_th = '[/th]'i | '</th>'i;
 close_td = '[/td]'i | '</td>'i;
 close_tn = '[/tn]'i | '</tn>'i;
 close_center = '[/center]'i | '</center>'i;
-close_color = '[/color'i (']' when in_color) | '</color'i ('>' when in_color);
+close_color = '[/color]'i | '</color>'i;
 close_b = '[/b]'i | '</b>'i | '</strong>'i;
 close_i = '[/i]'i | '</i>'i | '</em>'i;
 close_s = '[/s]'i | '</s>'i;
@@ -428,23 +427,6 @@ inline := |*
     }
   };
 
-  open_color => {
-    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
-  };
-
-  newline* close_color => {
-    g_debug("inline [/color]");
-
-    if (dstack_is_open(INLINE_COLOR)) {
-      dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_is_open(BLOCK_COLOR)) {
-      dstack_close_until(BLOCK_COLOR);
-      fret;
-    } else {
-      append_html_escaped({ ts, te });
-    }
-  };
-
   open_center => {
     dstack_open_element(INLINE_CENTER, "<div class=\"center\">");
   };
@@ -455,6 +437,20 @@ inline := |*
     if (dstack_check(INLINE_CENTER)) {
       dstack_close_element(INLINE_CENTER, { ts, te });
     } else if (dstack_close_element(BLOCK_CENTER, { ts, te })) {
+      fret;
+    }
+  };
+
+  open_color => {
+    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
+  };
+
+  newline* close_color => {
+    g_debug("inline [/color]");
+
+    if (dstack_check(INLINE_COLOR)) {
+      dstack_close_element(INLINE_COLOR, { ts, te });
+    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
       fret;
     }
   };
@@ -506,7 +502,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | open_color | aliased_color | hr | header | header_with_id | media_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | media_embed) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -520,11 +516,6 @@ inline := |*
   (newline ws*)? open_quote >mark_a1 => {
     dstack_close_leaf_blocks();
     fexec a1;
-    fret;
-  };
-
-  (newline ws*)? close_color ws* => {
-    dstack_close_until(BLOCK_COLOR);
     fret;
   };
 
@@ -732,21 +723,12 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  open_color space* => {
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
-  };
-
   aliased_color space* => {
     g_debug("block [color=]");
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
-    append_html_escaped({ a1, a2 });
-    append(";\">");
-  };
-
-  space* close_color ws* => {
-    dstack_close_until(BLOCK_COLOR);
+    append_block_html_escaped({ a1, a2 });
+    append_block(";\">");
   };
 
   open_expand space* => {
@@ -847,7 +829,7 @@ main := |*
     g_debug("block char");
     fhold;
 
-    if (dstack.empty() || dstack_check(BLOCK_QUOTE) || dstack_check(BLOCK_SPOILER) || dstack_check(BLOCK_EXPAND) || dstack_check(BLOCK_COLOR) || dstack_check(BLOCK_MEDIA_GALLERY)) {
+    if (dstack.empty() || dstack_check(BLOCK_QUOTE) || dstack_check(BLOCK_SPOILER) || dstack_check(BLOCK_EXPAND) || dstack_check(BLOCK_MEDIA_GALLERY)) {
       dstack_open_element(BLOCK_P, "<p>");
     }
 
