@@ -8873,7 +8873,7 @@ _eof_trans:
 
     if (dstack_is_open(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_is_open(BLOCK_color)) {
+    } else if (dstack_is_open(BLOCK_COLOR)) {
       dstack_close_until(BLOCK_COLOR);
       {( cs) = ( (stack.data()))[--( top)]; goto _again;}
     } else {
@@ -9594,7 +9594,7 @@ _eof_trans:
 
     if (dstack_is_open(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_is_open(BLOCK_color)) {
+    } else if (dstack_is_open(BLOCK_COLOR)) {
       dstack_close_until(BLOCK_COLOR);
       {( cs) = ( (stack.data()))[--( top)]; goto _again;}
     } else {

@@ -437,7 +437,7 @@ inline := |*
 
     if (dstack_is_open(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_is_open(BLOCK_color)) {
+    } else if (dstack_is_open(BLOCK_COLOR)) {
       dstack_close_until(BLOCK_COLOR);
       fret;
     } else {
