@@ -451,7 +451,7 @@ inline := |*
     append(";\">");
   };
 
-  newline* close_color newline? => {
+  newline* close_color => {
     g_debug("inline [/color]");
 
     if (dstack_check(INLINE_COLOR)) {
