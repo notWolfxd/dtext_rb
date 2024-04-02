@@ -429,16 +429,19 @@ inline := |*
   };
 
   open_color => {
-    dstack_open_element(INLINE_COLOR, "<span class=\"color:#FF761C;\">");
+    dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
   };
 
   newline* close_color => {
     g_debug("inline [/color]");
 
-    if (dstack_check(INLINE_COLOR)) {
+    if (dstack_is_open(INLINE_COLOR)) {
       dstack_close_element(INLINE_COLOR, { ts, te });
-    } else if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
+    } else if (dstack_is_open(BLOCK_color)) {
+      dstack_close_until(BLOCK_COLOR);
       fret;
+    } else {
+      append_html_escaped({ ts, te });
     }
   };
 
@@ -503,7 +506,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | hr | header | header_with_id | media_embed) => {
+  newline (code_fence | open_code | open_code_lang | open_nodtext | open_table | open_expand | aliased_expand | open_color | aliased_color | hr | header | header_with_id | media_embed) => {
     dstack_close_leaf_blocks();
     fexec ts;
     fret;
@@ -729,12 +732,21 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
+  open_color space* => {
+    dstack_close_leaf_blocks();
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
+  };
+
   aliased_color space* => {
     g_debug("block [color=]");
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
     append_html_escaped({ a1, a2 });
     append(";\">");
+  };
+
+  space* close_color ws* => {
+    dstack_close_until(BLOCK_COLOR);
   };
 
   open_expand space* => {
@@ -753,10 +765,6 @@ main := |*
   };
 
   space* close_expand ws* => {
-    dstack_close_until(BLOCK_EXPAND);
-  };
-  
-  space* close_color ws* => {
     dstack_close_until(BLOCK_EXPAND);
   };
 
@@ -839,7 +847,7 @@ main := |*
     g_debug("block char");
     fhold;
 
-    if (dstack.empty() || dstack_check(BLOCK_QUOTE) || dstack_check(BLOCK_SPOILER) || dstack_check(BLOCK_EXPAND) || dstack_check(BLOCK_MEDIA_GALLERY)) {
+    if (dstack.empty() || dstack_check(BLOCK_QUOTE) || dstack_check(BLOCK_SPOILER) || dstack_check(BLOCK_EXPAND) || dstack_check(BLOCK_COLOR) || dstack_check(BLOCK_MEDIA_GALLERY)) {
       dstack_open_element(BLOCK_P, "<p>");
     }
 
