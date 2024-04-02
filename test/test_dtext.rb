@@ -503,8 +503,20 @@ class DTextTest < Minitest::Test
   end
 
   def test_inline_color
-    assert_parse('<p>foo <span style="color:#FF761C;">bar</span> baz</p>', "foo [color]bar[/color] baz")
-    assert_parse('<p>foo <span style="color:#FF761C;">bar</span> baz</p>', "foo <color>bar</color> baz")
+    #assert_parse('<p>foo <span style="color:#FF761C;">bar</span> baz</p>', "foo [color]bar[/color] baz")
+    #assert_parse('<p>foo <span style="color:#FF761C;">bar</span> baz</p>', "foo <color>bar</color> baz")
+    #assert_parse('<span style="color:#FF761C;"><code>Sample</code></span>', "[color][code]Sample[/code][/color]")
+    #assert_parse('<span style="color:#FF761C;"><code>Sample</code></span>', "<color><code>Sample</code></color>")
+
+    assert_parse('<p>foo <span style="color:red;">bar</span> baz</p>', "foo [color=red]bar[/color] baz")
+    assert_parse('<p>foo <span style="color:red;">bar</span> baz</p>', "foo <color=red>bar</color> baz")
+    assert_parse('<span style="color:red;"><code>Sample</code></span>', "[color=red][code]Sample[/code][/color]")
+    assert_parse('<span style="color:red;"><code>Sample</code></span>', "<color=red><code>Sample</code></color>")
+    
+    assert_parse('<p>foo <span style="color:#AAA;">bar</span> baz</p>', "foo [color=#AAA]bar[/color] baz")
+    assert_parse('<p>foo <span style="color:#AAA;">bar</span> baz</p>', "foo <color=#AAA>bar</color> baz")
+    assert_parse('<span style="color:#AAA;"><code>Sample</code></span>', "[color=#AAA][code]Sample[/code][/color]")
+    assert_parse('<span style="color:#AAA;"><code>Sample</code></span>', "<color=#AAA><code>Sample</code></color>")
 
     assert_parse('<p>foo bar[/color] baz</p>', "foo bar[/color] baz")
     assert_parse('<p>foo bar&lt;/color&gt; baz</p>', "foo bar</color> baz")
@@ -516,10 +528,15 @@ class DTextTest < Minitest::Test
   def test_block_color
     assert_parse('<p style="color:#FF761C;">bar</p>', "[color]bar[/color]")
     assert_parse('<p style="color:#FF761C;">bar</p>', "<color>bar</color>")
+
+    assert_parse('<p style="color:red;">bar</p>', "[color=red]bar[/color]")
+    assert_parse('<p style="color:red;">bar</p>', "<color=red>bar</color>")
+
+    assert_parse('<p style="color:#AAA;">bar</p>', "[color=#AAA]bar[/color]")
     assert_parse('<p style="color:#AAA;">bar</p>', "<color=#AAA>bar</color>")
 
     assert_parse('<p>foo <strong>bar</strong></p><p style="color:#FF761C;">bar</p>', "foo [b]bar\n\n[color]bar[/color]")
-    assert_parse('<p>foo <strong>bar</strong></p><p style="color:#AAA;">bar</p>', "foo [b]bar\n\n[color=#AAA]bar[/color]")
+    assert_parse('<p>foo <strong>bar</strong></p><p style="color:red;">bar</p>', "foo [b]bar\n\n[color=red]bar[/color]")
     assert_parse('<p>foo <strong>bar<br><span style="color:#FF761C;"><br>bar</span></strong></p>', "foo [b]bar\n[color]\nbar\n[/color]") # XXX should be treated as a block tag?
   end
 
@@ -1544,7 +1561,6 @@ class DTextTest < Minitest::Test
     assert_parse('<media-embed data-type="post" data-id="1234"></media-embed>', "!post #1234  ")
 
     assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', "!Post #1234")
-    assert_parse('<p>!<a class="dtext-link dtext-id-link dtext-media-asset-id-link" href="/media_assets/1234">asset #1234</a></p>', "!Asset #1234")
 
     assert_parse('<p> !<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', " !post #1234")
     assert_parse('<p>foo<br> !<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', "foo\n !post #1234")

@@ -445,7 +445,13 @@ inline := |*
     dstack_open_element(INLINE_COLOR, "<span style=\"color:#FF761C;\">");
   };
 
-  newline* close_color => {
+  aliased_color => {
+    dstack_open_element(INLINE_COLOR, "<span style=\"color:");
+    append_block_html_escaped({ a1, a2 });
+    append(";\">");
+  };
+
+  newline* close_color newline? => {
     g_debug("inline [/color]");
 
     if (dstack_check(INLINE_COLOR)) {
@@ -522,6 +528,12 @@ inline := |*
   (newline ws*)? close_expand ws* => {
     dstack_close_until(BLOCK_EXPAND);
     fret;
+  };
+
+  (newline ws*)? close_color => {
+    if (dstack_close_element(BLOCK_COLOR, { ts, te })) {
+      fret;
+    }
   };
 
   (newline ws*)? close_th => {
@@ -723,14 +735,6 @@ main := |*
     append_code_fence({ b1, b2 }, { a1, a2 });
   };
 
-  aliased_color space* => {
-    g_debug("block [color=]");
-    dstack_close_leaf_blocks();
-    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
-    append_block_html_escaped({ a1, a2 });
-    append_block(";\">");
-  };
-
   open_expand space* => {
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_EXPAND, "<details>");
@@ -777,6 +781,14 @@ main := |*
   open_color => {
     dstack_close_leaf_blocks();
     dstack_open_element(BLOCK_COLOR, "<p style=\"color:#FF761C;\">");
+    fcall inline;
+  };
+
+  aliased_color => {
+    dstack_close_leaf_blocks();
+    dstack_open_element(BLOCK_COLOR, "<p style=\"color:");
+    append_block_html_escaped({ a1, a2 });
+    append_block(";\">");
     fcall inline;
   };
 
