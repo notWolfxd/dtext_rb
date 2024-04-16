@@ -331,9 +331,10 @@ inline := |*
   'user #'i id             => { append_id_link("user", "user", "/users/", { a1, a2 }); };
   'artist #'i id           => { append_id_link("artist", "artist", "/artists/", { a1, a2 }); };
   'user report #'i id           => { append_id_link("user report", "user-report", "/user_flags/", { a1, a2 }); };
-  'tag alias #'i id            => { append_id_link("tag alias", "tag-alias", "https://beta.sankakucomplex.com/tag_aliases?id[0]=", { a1, a2 }); };
-  'tag implication #'i id      => { append_id_link("tag implication", "tag-implication", "https://beta.sankakucomplex.com/tag_implications?id[0]=", { a1, a2 }); };
-  'tag translation #'i id      => { append_id_link("tag translation", "tag-translation", "https://beta.sankakucomplex.com/tag_translations?id[0]=", { a1, a2 }); };
+  'tag alias #'i id            => { append_id_link("tag alias", "tag-alias", "/tag_aliases?id=", { a1, a2 }); };
+  'tag implication #'i id      => { append_id_link("tag implication", "tag-implication", "/tag_implications?id=", { a1, a2 }); };
+  'tag translation #'i id      => { append_id_link("tag translation", "tag-translation", "/tag_translations?id=", { a1, a2 }); };
+  'tag mass edit #'i id      => { append_id_link("tag mass edit", "tag-mass-edit", "/tag_mass_edits?id=", { a1, a2 }); };
   'book #'i id      => { append_id_link("book", "book", "https://beta.sankakucomplex.com/books/", { a1, a2 }); };
   'series #'i id      => { append_id_link("series", "series", "https://beta.sankakucomplex.com/series/", { a1, a2 }); };
   'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions?id=", { a1, a2 }); };
