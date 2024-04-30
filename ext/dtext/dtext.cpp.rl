@@ -339,6 +339,7 @@ inline := |*
   'tag mass edit #'i id      => { append_id_link("tag mass edit", "tag-mass-edit", "/tag_mass_edits/", { a1, a2 }); };
   'book #'i id      => { append_id_link("book", "book", "https://beta.sankakucomplex.com/books/", { a1, a2 }); };
   'series #'i id      => { append_id_link("series", "series", "https://beta.sankakucomplex.com/series/", { a1, a2 }); };
+  'companion #'i id      => { append_id_link("companion", "companion", "https://beta.sankakucomplex.com/companions/", { a1, a2 }); };
   'mod action #'i id       => { append_id_link("mod action", "mod-action", "/mod_actions?id=", { a1, a2 }); };
   'record #'i id         => { append_id_link("record", "user-record", "/user_records?id=", { a1, a2 }); };
   'wiki #'i id             => { append_id_link("wiki", "wiki-page", "/wiki/", { a1, a2 }); };
