@@ -250,6 +250,7 @@ class DTextTest < Minitest::Test
     assert_parse("<p>h4. See also</p>", "h4&period; See also")
     assert_parse("<p>```<br>code<br>```</p>", "&grave;&grave;&grave;\ncode\n&grave;&grave;&grave;")
     assert_parse("<p>* list</p>", "&ast; list")
+    assert_parse("<p>1. list</p>", "1&period; list")
 
     assert_inline_parse('<a class="dtext-link" href="/posts">&amp;quot;title&amp;quot;</a>', '"&quot;title&quot;":/posts')
     assert_inline_parse('<a class="dtext-link dtext-wiki-link" href="/wiki/tiger_%26amp%3B_bunny">tiger_&amp;amp;_bunny</a>', '[[tiger_&amp;_bunny]]')
@@ -430,6 +431,7 @@ class DTextTest < Minitest::Test
   def test_headers
     assert_parse("<h1>header</h1>", "h1. header")
     assert_parse("<ul><li>a</li></ul><h1>header</h1><ul><li>list</li></ul>", "* a\n\nh1. header\n* list")
+    assert_parse("<ol><li>a</li></ol><h1>header</h1><ol><li>list</li></ol>", "1. a\n\nh1. header\n1. list")
     assert_parse("<p>blah h1. blah</p>", "blah h1. blah")
 
     assert_parse('<h1 id="dtext-blah">header</h1>', "h1#blah. header")
@@ -600,6 +602,9 @@ class DTextTest < Minitest::Test
   def test_quote_blocks_with_list
     assert_parse("<blockquote><ul><li>hello</li><li>there</li></ul></blockquote><p>abc</p>", "[quote]\n* hello\n* there\n[/quote]\nabc")
     assert_parse("<blockquote><ul><li>hello</li><li>there</li></ul></blockquote><p>abc</p>", "[quote]\n* hello\n* there\n\n[/quote]\nabc")
+
+    assert_parse("<blockquote><ol><li>hello</li><li>there</li></ol></blockquote><p>abc</p>", "[quote]\n1. hello\n2. there\n[/quote]\nabc")
+    assert_parse("<blockquote><ol><li>hello</li><li>there</li></ol></blockquote><p>abc</p>", "[quote]\n1. hello\n2. there\n\n[/quote]\nabc")
   end
 
   def test_quote_with_unclosed_tags
@@ -727,6 +732,7 @@ class DTextTest < Minitest::Test
 
     assert_parse('<h4>Code</h4><pre>code</pre>', "h4. Code\n```\ncode\n```")
     assert_parse('<ul><li>list</li></ul><pre>code</pre>', "* list\n```\ncode\n```")
+    assert_parse('<ol><li>list</li></ol><pre>code</pre>', "1. list\n```\ncode\n```")
     assert_parse('<hr><pre>code</pre>', "[hr]\n```\ncode\n```")
 
     assert_parse('<p><strong>text</strong></p><pre>code</pre>', "[b]text\n```\ncode\n```")
@@ -863,16 +869,12 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1234">post #1234</a></p>', 'https://danbooru.donmai.us/posts/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-pool-id-link" href="/pools/1234">pool #1234</a></p>', 'https://danbooru.donmai.us/pools/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-comment-id-link" href="/comments/1234">comment #1234</a></p>', 'https://danbooru.donmai.us/comments/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-post-id-link" href="/forum_posts/1234">forum #1234</a></p>', 'https://danbooru.donmai.us/forum_posts/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234">topic #1234</a></p>', 'https://danbooru.donmai.us/forum_topics/1234', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-post-id-link" href="/forums/1234">forum #1234</a></p>', 'https://danbooru.donmai.us/forums/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-user-id-link" href="/users/1234">user #1234</a></p>', 'https://danbooru.donmai.us/users/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-artist-id-link" href="/artists/1234">artist #1234</a></p>', 'https://danbooru.donmai.us/artists/1234', internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-favorite-group-id-link" href="/favorite_groups/1234">favgroup #1234</a></p>', 'https://danbooru.donmai.us/favorite_groups/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-wiki-page-id-link" href="/wiki/1234">wiki #1234</a></p>', 'https://danbooru.donmai.us/wiki/1234', internal_domains: %w[danbooru.donmai.us])
 
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/posts/1234#comment_5678">https://danbooru.donmai.us/posts/1234#comment_5678</a></p>', 'https://danbooru.donmai.us/posts/1234#comment_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/pools/1234?page=2">https://danbooru.donmai.us/pools/1234?page=2</a></p>', 'https://danbooru.donmai.us/pools/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
-    assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/favorite_groups/1234?page=2">https://danbooru.donmai.us/favorite_groups/1234?page=2</a></p>', 'https://danbooru.donmai.us/favorite_groups/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forum_topics/1234?page=2">https://danbooru.donmai.us/forum_topics/1234?page=2</a></p>', 'https://danbooru.donmai.us/forum_topics/1234?page=2', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/forum_topics/1234#forum_post_5678">https://danbooru.donmai.us/forum_topics/1234#forum_post_5678</a></p>', 'https://danbooru.donmai.us/forum_topics/1234#forum_post_5678', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link" href="https://danbooru.donmai.us/wiki/1234#dtext-see-also">https://danbooru.donmai.us/wiki/1234#dtext-see-also</a></p>', 'https://danbooru.donmai.us/wiki/1234#dtext-see-also', domain: "danbooru.donmai.us", internal_domains: %w[danbooru.donmai.us])
@@ -1211,6 +1213,101 @@ class DTextTest < Minitest::Test
 
     assert_inline_parse('<a rel="external nofollow noreferrer" class="dtext-link dtext-external-link dtext-named-external-link" href="mailto:foo_bar.baz+qux@test-mail.example.com">foo_bar.baz+qux@test-mail.example.com</a>', "mailto:foo_bar.baz+qux@test-mail.example.com")
   end
+  
+  def test_ordered_lists
+    # Basic listing
+    assert_parse('<ol><li>a</li></ol>', '1. a')
+    assert_parse('<ol><li>a</li><li>b</li></ol>', "1. a\n2. b")
+    assert_parse('<ol><li>a</li><li>b</li></ol>', "1. a\n11. b")
+    assert_parse('<ol><li>a</li><li>b</li><li>c</li></ol>', "1. a\n2. b\n3. c")
+    assert_parse('<ol><li>a</li></ol>', "1. a\n ")
+
+    # \r\n Listing
+    assert_parse('<ol><li>a</li><li>b</li></ol>', "1. a\r\n2. b")
+    assert_parse('<ol><li>a</li></ol><ol><li>b</li></ol>', "1. a\n\n2. b")
+    assert_parse('<ol><li>a</li><li>b</li><li>c</li></ol>', "1. a\r\n2. b\r\n3. c")
+
+    # Nested listing
+    assert_parse('<ol><li>a</li><li>b</li><ul><li>ba</li></ul><li>c</li></ol>', "1. a\n2. b\n* ba\n3. c")
+    assert_parse('<ol><li>a</li><li>b</li><ol><li>ba</li></ol><li>c</li></ol>', "1. a\n2. b\n  1. ba\n3. c")
+    assert_parse('<ol><li>a</li><li>b</li><ul><li>ba</li></ul><li>c</li></ol>', "1. a\n2. b\n  * ba\n3. c")
+
+    # Nested listing w/ subtext
+    assert_parse('<ol><li>a</li><li>b<br>subtext</li><ul><li>ba</li></ul><li>c</li></ol>', "1. a\n2. b\nsubtext\n* ba\n3. c")
+    assert_parse('<ol><li>a</li><li>b<br>  subtext</li><ul><li>ba</li></ul><li>c</li></ol>', "1. a\n2. b\n  subtext\n* ba\n3. c")
+    assert_parse('<ol><li>a</li><li>b<br>subtext</li><ol><li>ba</li></ol><li>c</li></ol>', "1. a\n2. b\nsubtext\n  1. ba\n3. c")
+    assert_parse('<ol><li>a</li><li>b<br>  subtext</li><ol><li>ba</li></ol><li>c</li></ol>', "1. a\n2. b\n  subtext\n  1. ba\n3. c")
+    assert_parse('<ol><li>a</li><li>b</li><ol><li>ba<br>subtext</li></ol><li>c</li></ol>', "1. a\n2. b\n  1. ba\nsubtext\n3. c")
+    assert_parse('<ol><li>a</li><li>b</li><ol><li>ba<br>  subtext</li></ol><li>c</li></ol>', "1. a\n2. b\n  1. ba\n  subtext\n3. c")
+
+    # Deep nesting
+    assert_parse('<ol><li>a</li><ul><li>b</li></ul></ol>', "1. a\n* b")
+    assert_parse('<ol><li>a</li><ul><li>b</li></ul></ol>', "1. a\n** b") # wrong, first * is ignored
+    assert_parse('<ol><li>a</li><ul><ul><li>b</li></ul></ul></ol>', "1. a\n*** b") # wrong, first * is ignored
+    assert_parse('<ol><li>a</li><ol><li>b</li></ol></ol>', "1. a\n  1. b")
+    assert_parse('<ol><li>a</li><ol><ol><li>b</li></ol></ol></ol>', "1. a\n    1. b")
+    assert_parse('<ol><li>a</li><ol><ol><ol><li>b</li></ol></ol></ol></ol>', "1. a\n      1. b")
+    assert_parse('<ol><li>a</li><ol><li>b</li><ol><li>c</li></ol></ol></ol>', "1. a\n  1. b\n    1. c")
+    assert_parse('<ol><ol><ol><li>a</li></ol><li>b</li></ol><li>c</li></ol>', "    1. a\n  1. b\n1. c")
+
+    # 1 nl should treat the text as subtext
+    assert_parse('<ol><li>a<br>bc</li><li>c</li></ol>', "1. a\nbc\n1. c")
+    assert_parse('<ol><li>a</li></ol><p>bc</p><ol><li>c</li></ol>', "1. a\n\nbc\n\n1. c")
+    assert_parse('<p>a<br>b</p><ol><li>c</li><li>d</li></ol>', "a\nb\n1. c\n2. d")
+    assert_parse('<p>a</p><ol><li>b<br>c</li><li>d<br>e</li></ol><p>another one</p>', "a\n1. b\nc\n2. d\ne\n\nanother one")
+    assert_parse('<p>a</p><ol><li>b<br>c</li><ol><li>d<br>e</li></ol></ol><p>another one</p>', "a\n1. b\nc\n  1. d\ne\n\nanother one")
+    
+    assert_parse('<ol><li><a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1">post #1</a></li></ol>', "1. post #1")
+    
+    # Assure deep nesting works with subtext
+    assert_parse('<ol><li>a<br>aa</li><ol><li>aaa</li><ol><li>aaaa</li></ol></ol><li>b</li></ol>', "1. a\naa\n  1. aaa\n    1. aaaa\n2. b")
+    assert_parse('<ol><li>a<br>aa</li><ol><li>aaa</li><ol><li>aaaa<br>aaaaaa</li></ol></ol><li>b</li></ol>', "1. a\naa\n  1. aaa\n    1. aaaa\naaaaaa\n2. b")
+    assert_parse('<ol><li>a<br>aa</li><ul><li>aaa</li><ol><li>aaaa</li></ol></ul><li>b</li></ol>', "1. a\naa\n* aaa\n    1. aaaa\n2. b")
+    assert_parse('<ol><li>a<br>aa</li><ul><li>aaa<br> aaa</li><ol><li>aaaa</li></ol></ul><li>b</li></ol>', "1. a\naa\n* aaa\n aaa\n    1. aaaa\n2. b")
+    assert_parse('<ol><li>a<br>aa</li><ul><li>aaa<br>aaa</li><ol><li>aaaa</li></ol></ul><li>b</li></ol>', "1. a\naa\n* aaa\naaa\n    1. aaaa\n2. b")
+
+    # Mixed
+    assert_parse('<ol><li>a</li><ul><li>aa</li></ul></ol>', "1. a\n* aa")
+    assert_parse('<ol><li>a</li><li>b</li><ul><li>aa</li></ul></ol>', "1. a\n2. b\n* aa")
+    assert_parse('<ol><li>a</li><li>b</li><ul><li>aa</li></ul></ol>', "1. a\n11. b\n* aa")
+    assert_parse('<ol><li>a</li><ul><li>b</li></ul><li>c</li></ol>', "1. a\n* b\n3. c")
+    assert_parse('<ol><li>a<br> *</li></ol>', "1. a\n *")
+
+    # Lists with inline elements, blocks should kick out of the list
+    assert_parse('<ol><li><em>a</em></li><li>b</li></ol>', "1. [i]a[/i]\n2. b")
+    assert_parse('<ol><li><em>a</em></li><li>b</li></ol>', "1. [i]a\n2. b")
+    assert_parse('<ol><ol><li><em>a</em></li></ol><li>b</li></ol>', "  1. [i]a\n2. b")
+    assert_parse('<ol><li><em>a</em></li></ol><ol><li>b</li></ol>', "1. [i]a\n\n2. b")
+    assert_parse('<p><em>a</em></p><ol><li>b</li><li>c</li></ol>', "[i]a\n1. b\n2. c")
+
+    assert_parse('<ol><li>a</li></ol><h5>See also</h5>', "1. a\nh5. See also")
+    assert_parse('<ol><li>a</li></ol><h5>See also</h5><ol><li>b</li></ol>', "1. a\nh5. See also\n2. b")
+    assert_parse('<h4><em>See also</em></h4><ol><li>a</li></ol>', "h4. [i]See also\n1. a")
+    assert_parse('<ol><li><em>a</em></li></ol><h4>See also</h4>', "1. [i]a\nh4. See also")
+    assert_parse('<h4>See also</h4><ol><li>a</li><li>h4. External links</li></ol>', "h4. See also\n1. a\n2. h4. External links")
+
+    assert_parse('<p>a</p><div class="spoiler"><ol><li>b</li><li>c</li></ol></div><p>d</p>', "a\n[spoilers]\n1. b\n2. c\n[/spoilers]\nd")
+    assert_parse('<p>a</p><blockquote><ol><li>b</li><li>c</li></ol></blockquote><p>d</p>', "a\n[quote]\n1. b\n2. c\n[/quote]\nd")
+    assert_parse('<p>a</p><details><summary>Show</summary><div><ol><li>b</li><li>c</li></ol></div></details><p>d</p>', "a\n[expand]\n1. b\n2. c\n[/expand]\nd")
+
+    assert_parse('<p>a</p><blockquote><ol><li>b</li><li>c</li></ol><p>d</p></blockquote>', "a\n[quote]\n1. b\n2. c\n\nd")
+    assert_parse('<p>a</p><details><summary>Show</summary><div><ol><li>b</li><li>c</li></ol><p>d</p></div></details>', "a\n[expand]\n1. b\n2. c\n\nd")
+
+    # No list
+    assert_parse('<p>1.</p>', "1.")
+    assert_parse('<p>1.a</p>', "1.a")
+    assert_parse('<p>111.</p>', "111.")
+    assert_parse('<p>1.<br>1.<br>1.</p>', "1.\n1.\n1.")
+    assert_parse('<p>1. <br>blah</p>', "1. \r\nblah")
+    # No list - indents
+    assert_parse('<p>  1. </p>', '  1. ')
+    assert_parse('<p>  1.</p>', '  1.')
+    assert_parse('<p>  1.a</p>', "  1.a")
+    assert_parse('<p>    1.</p>', "    1.")
+    assert_parse('<p>1.<br>1.<br>  1.</p>', "1.\n1.\n  1.")
+    assert_parse('<p>1. <br>  blah</p>', "1. \r\n  blah")
+    assert_parse('<p>1. <br>  blah<br>2. </p>', "1. \r\n  blah\n2. ")
+  end
 
   def test_lists
     assert_parse('<ul><li>a</li></ul>', '* a')
@@ -1229,12 +1326,11 @@ class DTextTest < Minitest::Test
     assert_parse('<ul><ul><ul><li>a</li></ul></ul><li>b</li></ul>', "*** a\n* b")
     assert_parse('<ul><ul><ul><li>a</li></ul></ul></ul>', "*** a")
 
-    assert_parse('<ul><li>a</li></ul><p>b</p><ul><li>c</li></ul>', "* a\nb\n* c")
+    assert_parse('<ul><li>a<br>b</li><li>c</li></ul>', "* a\nb\n* c")
 
     assert_parse('<p>a<br>b</p><ul><li>c</li><li>d</li></ul>', "a\nb\n* c\n* d")
-    assert_parse('<p>a</p><ul><li>b</li></ul><p>c</p><ul><li>d</li></ul><p>e</p><p>another one</p>', "a\n* b\nc\n* d\ne\n\nanother one")
-    assert_parse('<p>a</p><ul><li>b</li></ul><p>c</p><ul><ul><li>d</li></ul></ul><p>e</p><p>another one</p>', "a\n* b\nc\n** d\ne\n\nanother one")
-    assert_parse('<p>a</p><ul><li>b</li></ul><p>c</p><ul><ul><li>d</li></ul></ul><p>e</p><p>another one</p>', "a\n* b\nc\n** d\ne\n\nanother one")
+    assert_parse('<p>a</p><ul><li>b<br>c</li><li>d<br>e</li></ul><p>another one</p>', "a\n* b\nc\n* d\ne\n\nanother one")
+    assert_parse('<p>a</p><ul><li>b<br>c</li><ul><li>d<br>e</li></ul></ul><p>another one</p>', "a\n* b\nc\n** d\ne\n\nanother one")
 
     assert_parse('<ul><li><a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1">post #1</a></li></ul>', "* post #1")
 
@@ -1463,6 +1559,7 @@ class DTextTest < Minitest::Test
 
     assert_parse('<h4>See also</h4><table class="highlightable"><tr><td>text</td></tr></table>', "h4. See also\n[table][tr][td]text[/td][/tr][/table]")
     assert_parse('<ul><li>list</li></ul><table class="highlightable"><tr><td>text</td></tr></table>', "* list\n[table][tr][td]text[/td][/tr][/table]")
+    assert_parse('<ol><li>list</li></ol><table class="highlightable"><tr><td>text</td></tr></table>', "1. list\n[table][tr][td]text[/td][/tr][/table]")
     assert_parse('<div class="spoiler"><table class="highlightable"><tr><td>text</td></tr></table></div>', "[spoiler][table][tr][td]text[/td][/tr][/table][/spoiler]")
     assert_parse('<blockquote><table class="highlightable"><tr><td>text</td></tr></table></blockquote>', "[quote][table][tr][td]text[/td][/tr][/table][/quote]")
     assert_parse('<details><summary>Show</summary><div><table class="highlightable"><tr><td>text</td></tr></table></div></details>', "[expand][table][tr][td]text[/td][/tr][/table][/expand]")
@@ -1535,7 +1632,6 @@ class DTextTest < Minitest::Test
     assert_parse_id_link("dtext-comment-id-link", "/comments/1234", "comment #1234")
     assert_parse_id_link("dtext-pool-id-link", "/pools/1234", "pool #1234")
     assert_parse_id_link("dtext-user-id-link", "/users/1234", "user #1234")
-    assert_parse_id_link("dtext-artist-id-link", "/artists/1234", "artist #1234")
     assert_parse_id_link("dtext-tag-alias-id-link", "/tag_aliases/1234", "tag alias #1234")
     assert_parse_id_link("dtext-tag-implication-id-link", "/tag_implications/1234", "tag implication #1234")
     assert_parse_id_link("dtext-mod-action-id-link", "/mod_actions?id=1234", "mod action #1234")
@@ -1685,8 +1781,10 @@ class DTextTest < Minitest::Test
 
     assert_parse("<p>inline</p><details><summary>hello</summary><div><p>blah</p></div></details><p>blah</p>", "inline\n[expand=hello]blah[/expand]\nblah")
     assert_parse("<ul><li>list</li></ul><details><summary>hello</summary><div><p>blah</p></div></details>", "* list\n[expand=hello]blah[/expand]")
+    assert_parse("<ol><li>list</li></ol><details><summary>hello</summary><div><p>blah</p></div></details>", "1. list\n[expand=hello]blah[/expand]")
 
     assert_parse("<ul><li>list [expand=hello]blah[/expand]</li></ul>", "* list [expand=hello]blah[/expand]")
+    assert_parse("<ol><li>list [expand=hello]blah[/expand]</li></ol>", "1. list [expand=hello]blah[/expand]")
     assert_parse("<h1>foo [expand=hello]blah[/expand]</h1>", "h1. foo [expand=hello]blah[/expand]")
     assert_parse("<h1>foo</h1><details><summary>hello</summary><div><p>blah</p></div></details>", "h1. foo\n[expand=hello]blah[/expand]")
 
@@ -1700,6 +1798,7 @@ class DTextTest < Minitest::Test
 
   def test_expand_with_nested_list
     assert_parse("<details><summary>Show</summary><div><ul><li>a</li><li>b</li></ul></div></details><p>c</p>", "[expand]\n* a\n* b\n[/expand]\nc")
+    assert_parse("<details><summary>Show</summary><div><ol><li>a</li><li>b</li></ol></div></details><p>c</p>", "[expand]\n1. a\n2. b\n[/expand]\nc")
   end
 
   def test_hr

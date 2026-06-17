@@ -10,7 +10,6 @@ begin
   loader = Zeitwerk::Loader.for_gem
   loader.enable_reloading
   loader.inflector.inflect("dtext" => "DText")
-  #loader.logger = Logger.new(STDERR)
   loader.setup
 rescue LoadError
 end
